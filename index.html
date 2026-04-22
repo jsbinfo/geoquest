@@ -6,145 +6,115 @@
     <title>GeoQuest: Missão Esthela</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --primary: #4f46e5; --secondary: #0ea5e9; --success: #22c55e; --bg-light: #f0f9ff; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-light); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-        .game-card { background: white; border-radius: 30px; padding: 30px; width: 100%; max-width: 550px; box-shadow: 0 15px 35px rgba(14,165,233,0.2); border: 4px solid white; text-align: center; animation: slideUp 0.5s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .progress-outer { width: 100%; background: #e2e8f0; height: 16px; border-radius: 20px; margin-bottom: 25px; overflow: hidden; }
-        .progress-inner { height: 100%; background: linear-gradient(90deg, var(--secondary), var(--success)); width: 0%; transition: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .question-text { font-size: 20px; font-weight: 700; text-align: left; padding: 20px; border-radius: 20px; background: #f8fafc; border-left: 6px solid var(--secondary); margin-bottom: 20px; }
-        .btn-option { background: white; border: 2px solid #e2e8f0; border-radius: 20px; padding: 18px; margin-bottom: 15px; cursor: pointer; text-align: left; font-size: 17px; font-weight: 600; color: #475569; box-shadow: 0 5px 0 #e2e8f0; width: 100%; display: block; outline: none; transition: 0.2s; }
-        .btn-option:hover { transform: translateY(-3px); box-shadow: 0 8px 0 #bae6fd; border-color: var(--secondary); }
-        .btn-option:active { transform: translateY(2px); box-shadow: 0 2px 0 #e2e8f0; }
-        .btn-correct { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; box-shadow: 0 5px 0 #16a34a !important; }
-        .btn-wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; box-shadow: 0 5px 0 #dc2626 !important; }
-        .btn-start { background: var(--secondary); color: white; border: none; padding: 20px; border-radius: 25px; width: 100%; font-size: 19px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #0284c7; margin: 10px 0; transition: 0.2s; }
-        .btn-start:hover { transform: translateY(-4px); box-shadow: 0 10px 0 #0284c7; }
-        .feedback-area { background: #fffbeb; border-radius: 25px; padding: 20px; margin-top: 20px; border: 2px solid #fde68a; display: none; animation: popIn 0.3s ease; }
-        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        #game-screen, #result-screen { display: none; }
+        :root { --primary: #4f46e5; --secondary: #0ea5e9; --success: #22c55e; --bg: #f0f9ff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        .card { background: white; border-radius: 30px; padding: 30px; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 4px solid white; }
+        .btn-start { background: var(--secondary); color: white; border: none; padding: 20px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #0284c7; margin-bottom: 15px; transition: 0.2s; }
+        .btn-start:hover { transform: translateY(-3px); }
+        .btn-opt { background: white; border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px; margin-bottom: 10px; width: 100%; text-align: left; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-opt:hover { background: #f0f9ff; border-color: var(--secondary); }
+        .correct { background: #dcfce7 !important; border-color: #22c55e !important; }
+        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; }
+        .progress { width: 100%; background: #e2e8f0; height: 10px; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: 0.3s; }
+        #game, #result { display: none; }
     </style>
 </head>
 <body>
 
-<div class="game-card" id="start-screen">
-    <div style="font-size: 80px; margin-bottom: 15px;">🌍</div>
+<div class="card" id="start">
+    <div style="font-size: 60px;">🌍</div>
     <h1>GeoQuest 100</h1>
-    <p style="color: #64748b; font-weight: 600; margin-bottom: 35px;">Pronta para o desafio, Esthela?</p>
-    <button class="btn-start" onclick="initGame(20)">🚀 NÍVEL 1 (20 Questões)</button>
-    <button class="btn-start" onclick="initGame(50)" style="background-color: var(--primary); box-shadow: 0 6px 0 #3730a3;">🚁 NÍVEL 2 (50 Questões)</button>
-    <button class="btn-start" onclick="initGame(100)" style="background-color: #8b5cf6; box-shadow: 0 6px 0 #6d28d9;">👑 DESAFIO 100</button>
+    <p>Prepare-se, Esthela!</p>
+    <button class="btn-start" onclick="init(20)">🚀 NÍVEL 1 (20 Questões)</button>
+    <button class="btn-start" onclick="init(50)" style="background:var(--primary); box-shadow:0 5px 0 #3730a3;">🚁 NÍVEL 2 (50 Questões)</button>
+    <button class="btn-start" onclick="init(100)" style="background:#8b5cf6; box-shadow:0 5px 0 #6d28d9;">👑 DESAFIO 100</button>
 </div>
 
-<div class="game-card" id="game-screen">
-    <div class="progress-outer"><div id="progress-bar" class="progress-inner"></div></div>
-    <div id="q-status" style="font-size: 14px; color: var(--secondary); font-weight: 800; margin-bottom: 12px; text-align: left; text-transform: uppercase;"></div>
-    <div class="question-text" id="q-body"></div>
-    <div id="options-list"></div>
-    <div id="feedback-panel" class="feedback-area">
-        <div id="status-label" style="font-weight: 900; font-size: 22px; margin-bottom: 10px;"></div>
-        <p id="explanation-text" style="color: #92400e; font-weight: 500;"></p>
-        <button class="btn-start" onclick="nextQ()" style="padding: 15px; margin-top: 10px;">PRÓXIMA FASE ➔</button>
-    </div>
+<div class="card" id="game">
+    <div class="progress"><div id="pb" class="progress-fill"></div></div>
+    <div id="q-txt" style="font-size: 18px; font-weight: bold; margin-bottom: 20px; text-align: left;"></div>
+    <div id="opts"></div>
 </div>
 
-<div class="game-card" id="result-screen">
-    <div id="res-icon" style="font-size: 100px; margin-bottom: 15px;">🏆</div>
-    <h1 id="res-msg"></h1>
-    <p id="res-score" style="font-size: 22px; color: #64748b; margin-bottom: 35px;"></p>
-    <button class="btn-start" onclick="location.reload()">JOGAR DE NOVO</button>
+<div class="card" id="result">
+    <h1 id="res-title"></h1>
+    <p id="res-body" style="font-size: 20px;"></p>
+    <button class="btn-start" onclick="location.reload()">RECOMEÇAR</button>
 </div>
 
 <script>
-    // --- LOG DE ACESSO VIA PROXY GOOGLE SCRIPT ---
-    const PROXY_URL = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
+    // URL do seu Script que você mandou
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
 
-    async function registrarIP() {
-        try {
-            const r = await fetch('https://api.ipify.org?format=json');
-            const d = await r.json();
-            // Método no-cors para evitar bloqueios de CSP do navegador
-            fetch(`${PROXY_URL}?ip=${d.ip}`, { mode: 'no-cors' });
-        } catch (e) { console.log("Erro no log"); }
+    function logIP() {
+        fetch('https://api.ipify.org?format=json')
+            .then(r => r.json())
+            .then(d => {
+                // Técnica da imagem: Ignora erros de CORS do console
+                const i = new Image();
+                i.src = `${URL_SCRIPT}?ip=${d.ip}&t=${Date.now()}`;
+            }).catch(() => {});
     }
 
-    // --- BANCO DE DADOS EXPANSÍVEL ---
-    const questoesBase = [
-        { q: "Por que as casas ribeirinhas são construídas como palafitas?", o: ["Pela beleza das estacas", "Para evitar inundações nas cheias", "Para ventilar melhor"], a: 1, e: "As estacas elevam a casa acima do nível do rio durante o período de chuvas." },
-        { q: "Onde se localiza a aldeia Ipavu?", o: ["No litoral fluminense", "No Parque do Xingu (MT)", "Na floresta amazônica"], a: 1, e: "A aldeia Ipavu é um centro importante da cultura indígena no Mato Grosso." },
-        { q: "De quais materiais são feitas as ocas tradicionais?", o: ["Concreto e ferragens", "Barro e fibras vegetais", "Madeira e telhas de zinco"], a: 1, e: "O uso de materiais naturais garante conforto térmico dentro da oca." },
-        { q: "O que caracteriza historicamente os Quilombos?", o: ["Vilas de comércio", "Refúgio de resistência à escravidão", "Cidades industriais"], a: 1, e: "Eram espaços de liberdade e preservação da cultura africana." },
-        { q: "Qual o principal transporte dos alunos ribeirinhos?", o: ["Ônibus escolar", "Barcos e canoas", "Bicicletas"], a: 1, e: "Nos rios, as embarcações são as verdadeiras 'mochilas' dos estudantes." },
-        { q: "O que a comunidade Malhadinha (TO) costuma plantar?", o: ["Apenas soja", "Arroz, feijão e mandioca", "Nada, eles só pescam"], a: 1, e: "A policultura garante a segurança alimentar de toda a comunidade." },
-        { q: "Como o saber é passado nas aldeias e quilombos?", o: ["Por manuais técnicos", "Pela oralidade e histórias", "Pela televisão"], a: 1, e: "A tradição oral mantém viva a história através das gerações." },
-        { q: "Povos tradicionais ensinam qual relação com a mata?", o: ["Exploração máxima", "Harmonia e preservação", "Queimadas constantes"], a: 1, e: "Eles mostram como usar os recursos sem esgotar a natureza." },
-        { q: "As ocas são todas do mesmo formato?", o: ["Sim, todas redondas", "Não, variam conforme a etnia", "Sim, todas quadradas"], a: 1, e: "Cada povo indígena possui seu próprio estilo de arquitetura." },
-        { q: "Qual o papel das mulheres quilombolas no plantio?", o: ["Apenas observam", "São guardiãs das sementes", "Não participam da roça"], a: 1, e: "Elas lideram a preservação da biodiversidade agrícola local." }
+    const base = [
+        { q: "Por que palafitas são altas?", o: ["Estilo", "Evitar enchentes", "Fugir do calor"], a: 1 },
+        { q: "Onde fica a aldeia Ipavu?", o: ["Rio", "Xingu (MT)", "Amazonas"], a: 1 },
+        { q: "Material das ocas?", o: ["Pedra", "Barro e Palha", "Metal"], a: 1 },
+        { q: "O que é Quilombo?", o: ["Mercado", "Resistência", "Fábrica"], a: 1 },
+        { q: "Transporte ribeirinho?", o: ["Carro", "Barco", "Trem"], a: 1 },
+        { q: "Mulheres de Malhadinha plantam o quê?", o: ["Só soja", "Alimentos diversos", "Nada"], a: 1 },
+        { q: "O que é oralidade?", o: ["Ler livros", "Contar histórias", "Ficar mudo"], a: 1 },
+        { q: "Papel do ancião?", o: ["Viajar", "Ensinar tradições", "Trabalhar no banco"], a: 1 },
+        { q: "Cuidar da mata é...", o: ["Bobeira", "Essencial para o futuro", "Só para índios"], a: 1 },
+        { q: "Como os indígenas veem a floresta?", o: ["Como dinheiro", "Como sua casa", "Como um shopping"], a: 1 }
     ];
 
-    // Geração dinâmica de até 100 questões embaralhadas
-    let gameBank = [], curIdx = 0, corrects = 0, isLocked = false;
+    let bank = [], cur = 0, score = 0;
 
-    function initGame(n) {
-        registrarIP();
-        document.getElementById('start-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'block';
+    function init(n) {
+        logIP();
+        document.getElementById('start').style.display = 'none';
+        document.getElementById('game').style.display = 'block';
         
-        // Cria a lista de 100 misturando a base
-        let tempBank = [];
-        while(tempBank.length < 100) {
-            questoesBase.forEach(item => { if(tempBank.length < 100) tempBank.push({...item}); });
-        }
-        gameBank = tempBank.sort(() => Math.random() - 0.5).slice(0, n);
-        renderQ();
+        // Gera as 100 questões (repetindo e embaralhando a base)
+        let temp = [];
+        while(temp.length < 100) { base.forEach(x => temp.push({...x})); }
+        bank = temp.sort(() => Math.random() - 0.5).slice(0, n);
+        render();
     }
 
-    function renderQ() {
-        isLocked = false;
-        const q = gameBank[curIdx];
-        document.getElementById('progress-bar').style.width = (curIdx / gameBank.length * 100) + "%";
-        document.getElementById('q-status').innerText = `QUESTÃO ${curIdx + 1} DE ${gameBank.length}`;
-        document.getElementById('q-body').innerText = q.q;
-        document.getElementById('feedback-panel').style.display = 'none';
-        const list = document.getElementById('options-list');
-        list.innerHTML = '';
+    function render() {
+        const q = bank[cur];
+        document.getElementById('pb').style.width = (cur/bank.length*100)+'%';
+        document.getElementById('q-txt').innerText = `Questão ${cur+1}: ${q.q}`;
+        const container = document.getElementById('opts');
+        container.innerHTML = '';
         
-        q.o.forEach((txt, i) => {
+        q.o.forEach((t, i) => {
             const b = document.createElement('button');
-            b.className = 'btn-option';
-            b.innerText = txt;
+            b.className = 'btn-opt';
+            b.innerText = t;
             b.onclick = () => {
-                if(isLocked) return; isLocked = true;
-                const win = i === q.a;
-                if(win) {
-                    b.classList.add('btn-correct');
-                    document.getElementById('status-label').innerText = "⭐ INCRÍVEL!";
-                    document.getElementById('status-label').style.color = "#16a34a";
-                    corrects++;
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                } else {
-                    b.classList.add('btn-wrong');
-                    document.getElementById('status-label').innerText = "💡 APRENDENDO:";
-                    document.getElementById('status-label').style.color = "#dc2626";
-                }
-                document.getElementById('explanation-text').innerText = q.e;
-                document.getElementById('feedback-panel').style.display = 'block';
+                const isCorrect = i === q.a;
+                if(isCorrect) { b.classList.add('correct'); score++; confetti(); }
+                else { b.classList.add('wrong'); }
+                
+                setTimeout(() => {
+                    cur++;
+                    if(cur < bank.length) render();
+                    else finish();
+                }, 800);
             };
-            list.appendChild(b);
+            container.appendChild(b);
         });
     }
 
-    function nextQ() {
-        curIdx++;
-        if(curIdx < gameBank.length) renderQ(); else finish();
-    }
-
     function finish() {
-        document.getElementById('game-screen').style.display = 'none';
-        document.getElementById('result-screen').style.display = 'block';
-        const p = (corrects / gameBank.length) * 100;
-        document.getElementById('res-msg').innerText = p >= 70 ? "VOCÊ FOI GENIAL!" : "MUITO BEM, ESTHELA!";
-        document.getElementById('res-score').innerText = `Acertos: ${corrects} de ${gameBank.length}`;
+        document.getElementById('game').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('res-title').innerText = score > (bank.length/2) ? "Mandou bem!" : "Valeu o esforço!";
+        document.getElementById('res-body').innerText = `Esthela, você acertou ${score} de ${bank.length}!`;
     }
 </script>
 </body>

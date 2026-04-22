@@ -3,107 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoQuest 100</title>
+    <title>GeoQuest 100 - Esthela</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #e0f2fe; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; border-radius: 25px; padding: 25px; width: 90%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 3px solid #fff; }
-        .btn-main { background: #0ea5e9; color: white; border: none; padding: 18px; border-radius: 15px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #0284c7; margin-bottom: 12px; }
-        .btn-opt { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 10px; width: 100%; text-align: left; cursor: pointer; font-size: 16px; font-weight: 600; color: #334155; display: block; }
-        .progress { background: #f1f5f9; height: 12px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        #pb { height: 100%; background: #22c55e; width: 0%; border-radius: 10px; transition: 0.4s; }
+        :root { --primary: #4f46e5; --secondary: #0ea5e9; --success: #22c55e; --bg: #f0f9ff; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        
+        .card { background: white; border-radius: 30px; padding: 35px; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid white; }
+        
+        h1 { color: #1e293b; font-size: 28px; margin-bottom: 20px; }
+        
+        /* Botões Estilo 3D Gamificado */
+        .btn-main { background: var(--secondary); color: white; border: none; padding: 20px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #0284c7; margin-bottom: 15px; transition: 0.1s; }
+        .btn-main:active { transform: translateY(4px); box-shadow: 0 2px 0 #0284c7; }
+        
+        .btn-opt { background: white; border: 2px solid #e2e8f0; border-radius: 18px; padding: 18px; margin-bottom: 12px; width: 100%; text-align: left; cursor: pointer; font-weight: 600; font-size: 17px; color: #475569; box-shadow: 0 4px 0 #e2e8f0; transition: 0.2s; display: block; }
+        .btn-opt:hover { border-color: var(--secondary); background: #f0f9ff; }
+        
+        /* Cores de Feedback */
+        .correct { background: #dcfce7 !important; border-color: #22c55e !important; box-shadow: 0 4px 0 #16a34a !important; color: #166534 !important; }
+        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; box-shadow: 0 4px 0 #dc2626 !important; color: #991b1b !important; }
+        
+        /* Barra de Progresso */
+        .progress-box { width: 100%; background: #e2e8f0; height: 12px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: 0.4s; }
+
         #game, #result { display: none; }
-        .q-info { color: #0ea5e9; font-weight: 800; font-size: 12px; margin-bottom: 10px; display: block; }
     </style>
 </head>
 <body>
 
 <div class="card" id="start">
-    <h1 style="font-size: 24px;">🌍 GeoQuest 100</h1>
-    <p style="color: #64748b;">Pronta, Esthela?</p>
-    <button class="btn-main" onclick="init(20)">🚀 COMEÇAR (20 Qs)</button>
-    <button class="btn-main" onclick="init(100)" style="background:#8b5cf6; box-shadow:0 5px 0 #6d28d9;">👑 DESAFIO 100</button>
+    <div style="font-size: 70px;">🌍</div>
+    <h1>GeoQuest 100</h1>
+    <p style="color: #64748b; margin-bottom: 30px;">Missão Especial para a Esthela!</p>
+    <button class="btn-main" onclick="iniciar(20)">🚀 NÍVEL 1 (20 Questões)</button>
+    <button class="btn-main" onclick="iniciar(100)" style="background:#8b5cf6; box-shadow: 0 6px 0 #6d28d9;">👑 DESAFIO 100</button>
 </div>
 
 <div class="card" id="game">
-    <div class="progress"><div id="pb"></div></div>
-    <span class="q-info" id="q-idx"></span>
-    <div id="q-txt" style="font-size: 19px; font-weight: 700; margin-bottom: 20px; text-align: left;"></div>
+    <div class="progress-box"><div id="pb" class="progress-fill"></div></div>
+    <div id="q-txt" style="font-size: 20px; font-weight: 700; margin-bottom: 25px; text-align: left; color: #1e293b;"></div>
     <div id="opts"></div>
 </div>
 
 <div class="card" id="result">
-    <h1>🏆 FIM!</h1>
-    <p id="res-txt" style="font-size: 18px;"></p>
-    <button class="btn-main" onclick="location.reload()">RECOMEÇAR</button>
+    <div style="font-size: 70px;">🏆</div>
+    <h1>Fim da Missão!</h1>
+    <p id="res-score" style="font-size: 22px; color: #475569; margin-bottom: 30px;"></p>
+    <button class="btn-main" onclick="location.reload()">JOGAR NOVAMENTE</button>
 </div>
 
 <script>
-    // URL do seu Google Script para log de IP
-    const URL_APPS = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
+    // Substitua pela sua URL final do Apps Script (após clicar em Implantar)
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
 
-    const base = [
+    const questoesBase = [
+        { q: "Por que as casas ribeirinhas são palafitas?", o: ["Pela vista do rio", "Para evitar enchentes", "Para os peixes entrarem"], a: 1 },
         { q: "Onde fica a aldeia Ipavu?", o: ["No Rio de Janeiro", "No Parque do Xingu (MT)", "Em São Paulo"], a: 1 },
-        { q: "Por que as casas ribeirinhas são palafitas?", o: ["Pela beleza", "Para evitar inundações", "Para ventilar"], a: 1 },
-        { q: "O que caracteriza os Quilombos?", o: ["Vilas de comércio", "Refúgio e resistência", "Cidades industriais"], a: 1 },
-        { q: "Principal transporte ribeirinho?", o: ["Ônibus", "Barcos e canoas", "Bicicletas"], a: 1 },
-        { q: "Material das ocas tradicionais?", o: ["Tijolo", "Barro e fibras vegetais", "Metal"], a: 1 }
+        { q: "Material usado nas ocas tradicionais?", o: ["Tijolo e telha", "Barro, palha e madeira", "Plástico"], a: 1 },
+        { q: "O que é um Quilombo?", o: ["Um mercado", "Comunidade de resistência", "Um shopping"], a: 1 },
+        { q: "Transporte comum dos ribeirinhos?", o: ["Metrô", "Barcos e canoas", "Helicóptero"], a: 1 },
+        { q: "As mulheres de Malhadinha plantam o quê?", o: ["Só flores", "Alimentos para a comunidade", "Nada"], a: 1 },
+        { q: "Como os saberes são passados nos quilombos?", o: ["Pelo YouTube", "Histórias dos mais velhos", "Por e-mail"], a: 1 },
+        { q: "O que é a tradição oral?", o: ["Cuidar dos dentes", "Passar cultura pela fala", "Aprender a cantar"], a: 1 },
+        { q: "Cuidar da natureza para esses povos é...", o: ["Passatempo", "Modo de vida", "Proibido"], a: 1 },
+        { q: "A escola na floresta ensina sobre...", o: ["Só prédios", "A fauna e a flora local", "Marte"], a: 1 }
     ];
 
-    let bank = [], cur = 0, score = 0;
+    let bank = [], cur = 0, score = 0, bloqueado = false;
 
-    function init(n) {
-        // Log de IP simplificado via Imagem (Bypass CSP)
-        new Image().src = URL_APPS + "?ip=Acesso_Esthela&t=" + Date.now();
+    function iniciar(n) {
+        // Log de IP silencioso (não trava o jogo mesmo se o servidor falhar)
+        const img = new Image();
+        img.src = URL_SCRIPT + "?ip=Acesso_Esthela&t=" + Date.now();
 
         document.getElementById('start').style.display = 'none';
         document.getElementById('game').style.display = 'block';
         
+        // Gera 100 questões repetindo a base de forma aleatória
         let temp = [];
-        while(temp.length < 100) { base.forEach(x => temp.push({...x})); }
-        bank = temp.sort(() => 0.5 - Math.random()).slice(0, n);
+        while(temp.length < 100) { questoesBase.forEach(x => temp.push({...x})); }
+        bank = temp.sort(() => Math.random() - 0.5).slice(0, n);
         render();
     }
 
     function render() {
+        bloqueado = false;
         const q = bank[cur];
-        document.getElementById('pb').style.width = (cur / bank.length * 100) + "%";
-        document.getElementById('q-idx').innerText = "QUESTÃO " + (cur + 1) + " DE " + bank.length;
-        document.getElementById('q-txt').innerText = q.q;
-        
-        const div = document.getElementById('opts');
-        div.innerHTML = "";
+        document.getElementById('pb').style.width = (cur/bank.length*100)+'%';
+        document.getElementById('q-txt').innerText = `Questão ${cur+1}: ${q.q}`;
+        const container = document.getElementById('opts');
+        container.innerHTML = '';
         
         q.o.forEach((txt, i) => {
             const b = document.createElement('button');
-            b.className = "btn-opt";
+            b.className = 'btn-opt';
             b.innerText = txt;
-            b.onclick = function() {
-                if(i === q.a) {
-                    this.style.background = "#dcfce7";
-                    this.style.borderColor = "#22c55e";
-                    score++;
-                } else {
-                    this.style.background = "#fee2e2";
-                    this.style.borderColor = "#ef4444";
+            b.onclick = () => {
+                if(bloqueado) return;
+                bloqueado = true;
+                if(i === q.a) { 
+                    b.classList.add('correct'); 
+                    score++; 
+                } else { 
+                    b.classList.add('wrong'); 
                 }
-                // Trava os botões para não clicar duas vezes
-                const btns = div.getElementsByTagName('button');
-                for(let btn of btns) btn.disabled = true;
-
+                
                 setTimeout(() => {
                     cur++;
                     if(cur < bank.length) render();
-                    else finish();
+                    else finalizar();
                 }, 700);
             };
-            div.appendChild(b);
+            container.appendChild(b);
         });
     }
 
-    function finish() {
+    function finalizar() {
         document.getElementById('game').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('res-txt').innerText = "Esthela, você acertou " + score + " de " + bank.length + "!";
+        document.getElementById('res-score').innerText = `Esthela, você acertou ${score} de ${bank.length}!`;
     }
 </script>
 </body>

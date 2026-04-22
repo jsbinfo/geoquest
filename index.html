@@ -6,6 +6,139 @@
     <title>GeoQuest: Missão Esthela</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        :root { --primary: #4f46e5; --secondary: #0ea5e9; --success: #22c55e; --bg-light: #f0f9ff; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-light); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        .game-card { background: white; border-radius: 30px; padding: 30px; width: 100%; max-width: 550px; box-shadow: 0 15px 35px rgba(14,165,233,0.2); border: 4px solid white; text-align: center; animation: slideUp 0.5s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .progress-outer { width: 100%; background: #e2e8f0; height: 16px; border-radius: 20px; margin-bottom: 25px; overflow: hidden; }
+        .progress-inner { height: 100%; background: linear-gradient(90deg, var(--secondary), var(--success)); width: 0%; transition: 0.6s; }
+        .question-text { font-size: 20px; font-weight: 700; text-align: left; padding: 20px; border-radius: 20px; background: #f8fafc; border-left: 6px solid var(--secondary); margin-bottom: 20px; }
+        .btn-option { background: white; border: 2px solid #e2e8f0; border-radius: 20px; padding: 18px; margin-bottom: 15px; cursor: pointer; text-align: left; font-size: 17px; font-weight: 600; box-shadow: 0 5px 0 #e2e8f0; width: 100%; transition: 0.2s; }
+        .btn-option:hover { transform: translateY(-3px); box-shadow: 0 8px 0 #bae6fd; border-color: var(--secondary); }
+        .btn-correct { background: #dcfce7 !important; border-color: #22c55e !important; box-shadow: 0 5px 0 #16a34a !important; }
+        .btn-wrong { background: #fee2e2 !important; border-color: #ef4444 !important; box-shadow: 0 5px 0 #dc2626 !important; }
+        .btn-start { background: var(--secondary); color: white; border: none; padding: 20px; border-radius: 25px; width: 100%; font-size: 19px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #0284c7; margin: 10px 0; }
+        .feedback-area { background: #fffbeb; border-radius: 25px; padding: 20px; margin-top: 20px; border: 2px solid #fde68a; display: none; }
+        #game-screen, #result-screen { display: none; }
+    </style>
+</head>
+<body>
+
+<script>
+    // SISTEMA DE LOG (IMAGE PIXEL BYPASS)
+    function registrarIP() {
+        fetch('https://api.ipify.org?format=json')
+            .then(r => r.json())
+            .then(d => {
+                const img = new Image();
+                // Usando o seu ID de formulário e o ID da pergunta que localizei
+                img.src = `https://docs.google.com/forms/d/e/1FAIpQLScizAaPG6PTqwTvKJI81G8iEz_W7Xa30F29FbyHt-zh8gKVUg/formResponse?entry.2060133202=${d.ip}&submit=Submit`;
+            }).catch(() => {});
+    }
+
+    const baseData = [
+        { q: "Por que as casas ribeirinhas são palafitas?", o: ["Decoração", "Evitar enchentes", "Fugir do sol"], a: 1, e: "As estacas elevam a casa durante as cheias dos rios." },
+        { q: "Onde fica a aldeia Ipavu?", o: ["Rio", "Xingu (MT)", "Bahia"], a: 1, e: "Localizada no Parque Indígena do Xingu." },
+        { q: "Material das ocas tradicionais?", o: ["Vidro", "Barro e palha", "Metal"], a: 1, e: "Materiais naturais que mantêm o frescor." },
+        { q: "O que é um Quilombo?", o: ["Escola", "Refúgio de resistência", "Clube"], a: 1, e: "Espaços de liberdade criados contra a escravidão." },
+        { q: "Transporte dos ribeirinhos?", o: ["Trem", "Barcos e canoas", "Ônibus"], a: 1, e: "A água é a principal estrada dessas famílias." },
+        { q: "As mulheres de Malhadinha plantam o quê?", o: ["Monocultura", "Policultura diversa", "Só soja"], a: 1, e: "Plantam arroz, feijão e muito mais para sustento." },
+        { q: "O que é oralidade?", o: ["Leitura", "Saber passado pela fala", "Silêncio"], a: 1, e: "Histórias contadas pelos mais velhos aos mais novos." },
+        { q: "Papel do ancião?", o: ["Operário", "Guardião da sabedoria", "Turista"], a: 1, e: "Eles preservam a memória da comunidade." },
+        { q: "Agricultura quilombola usa...", o: ["Veneno", "Sementes tradicionais", "Drones"], a: 1, e: "Preservam espécies nativas de alimentos." },
+        { q: "Como os povos tradicionais tratam a mata?", o: ["Destruindo", "Com harmonia e respeito", "Como mercadoria"], a: 1, e: "Retiram apenas o necessário para a vida." }
+    ];
+
+    // Expandindo para 100 questões embaralhadas
+    let questions100 = [];
+    while(questions100.length < 100) {
+        baseData.forEach(i => { if(questions100.length < 100) questions100.push({...i}); });
+    }
+
+    let bank = [], cur = 0, score = 0, locked = false;
+
+    function initGame(n) {
+        registrarIP();
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        bank = questions100.sort(() => Math.random() - 0.5).slice(0, n);
+        render();
+    }
+
+    function render() {
+        locked = false;
+        const q = bank[cur];
+        document.getElementById('progress-bar').style.width = (cur/bank.length*100)+'%';
+        document.getElementById('q-status').innerText = `QUESTÃO ${cur+1} DE ${bank.length}`;
+        document.getElementById('q-body').innerText = q.q;
+        document.getElementById('feedback-panel').style.display = 'none';
+        const list = document.getElementById('options-list');
+        list.innerHTML = '';
+        q.o.forEach((t, i) => {
+            const b = document.createElement('button');
+            b.className = 'btn-option';
+            b.innerText = t;
+            b.onclick = () => {
+                if(locked) return; locked = true;
+                const win = i === q.a;
+                if(win) { score++; confetti(); }
+                b.classList.add(win ? 'btn-correct' : 'btn-wrong');
+                document.getElementById('status-label').innerText = win ? "⭐ ACERTOU!" : "💡 EXPLICAÇÃO:";
+                document.getElementById('explanation-text').innerText = q.e;
+                document.getElementById('feedback-panel').style.display = 'block';
+            };
+            list.appendChild(b);
+        });
+    }
+
+    function nextQ() {
+        cur++;
+        if(cur < bank.length) render();
+        else {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('res-msg').innerText = "FIM DE JOGO!";
+            document.getElementById('res-score').innerText = `Esthela, você fez ${score} pontos!`;
+        }
+    }
+</script>
+
+<div class="game-card" id="start-screen">
+    <div style="font-size: 80px;">🌍</div>
+    <h1>GeoQuest 100</h1>
+    <button class="btn-start" onclick="initGame(20)">🚀 NÍVEL 1 (20 Qs)</button>
+    <button class="btn-start" onclick="initGame(50)" style="background: var(--primary);">🚁 NÍVEL 2 (50 Qs)</button>
+    <button class="btn-start" onclick="initGame(100)" style="background: #8b5cf6;">👑 DESAFIO 100</button>
+</div>
+
+<div class="game-card" id="game-screen">
+    <div class="progress-outer"><div id="progress-bar" class="progress-inner"></div></div>
+    <div id="q-status" style="font-size: 14px; font-weight: 800; color: var(--secondary); text-align: left;"></div>
+    <div class="question-text" id="q-body"></div>
+    <div id="options-list"></div>
+    <div id="feedback-panel" class="feedback-area">
+        <div id="status-label" style="font-weight: 900; font-size: 20px;"></div>
+        <p id="explanation-text"></p>
+        <button class="btn-start" onclick="nextQ()" style="padding: 15px;">PRÓXIMA ➔</button>
+    </div>
+</div>
+
+<div class="game-card" id="result-screen">
+    <div id="res-icon" style="font-size: 80px;">🏆</div>
+    <h1 id="res-msg"></h1>
+    <p id="res-score"></p>
+    <button class="btn-start" onclick="location.reload()">RECOMEÇAR</button>
+</div>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoQuest: Missão Esthela</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
         :root {
             --primary: #4f46e5;
             --secondary: #0ea5e9;

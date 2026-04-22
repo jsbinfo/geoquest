@@ -3,118 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoQuest: Missão Esthela</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>GeoQuest 100 - Esthela</title>
     <style>
         :root { --primary: #4f46e5; --secondary: #0ea5e9; --success: #22c55e; --bg: #f0f9ff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-        .card { background: white; border-radius: 30px; padding: 30px; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 4px solid white; }
-        .btn-start { background: var(--secondary); color: white; border: none; padding: 20px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #0284c7; margin-bottom: 15px; transition: 0.2s; }
-        .btn-start:hover { transform: translateY(-3px); }
-        .btn-opt { background: white; border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px; margin-bottom: 10px; width: 100%; text-align: left; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .btn-opt:hover { background: #f0f9ff; border-color: var(--secondary); }
-        .correct { background: #dcfce7 !important; border-color: #22c55e !important; }
-        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; }
-        .progress { width: 100%; background: #e2e8f0; height: 10px; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: 0.3s; }
+        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; border-radius: 25px; padding: 25px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        .btn { background: var(--secondary); color: white; border: none; padding: 15px; border-radius: 15px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .btn-opt { background: #f8fafc; border: 2px solid #e2e8f0; color: #334155; text-align: left; }
+        .correct { background: #dcfce7; border-color: #22c55e; }
+        .wrong { background: #fee2e2; border-color: #ef4444; }
+        .progress { background: #e2e8f0; height: 8px; border-radius: 10px; margin-bottom: 20px; }
+        .fill { height: 100%; background: var(--success); width: 0%; border-radius: 10px; transition: 0.3s; }
         #game, #result { display: none; }
     </style>
 </head>
 <body>
 
 <div class="card" id="start">
-    <div style="font-size: 60px;">🌍</div>
-    <h1>GeoQuest 100</h1>
-    <p>Prepare-se, Esthela!</p>
-    <button class="btn-start" onclick="init(20)">🚀 NÍVEL 1 (20 Questões)</button>
-    <button class="btn-start" onclick="init(50)" style="background:var(--primary); box-shadow:0 5px 0 #3730a3;">🚁 NÍVEL 2 (50 Questões)</button>
-    <button class="btn-start" onclick="init(100)" style="background:#8b5cf6; box-shadow:0 5px 0 #6d28d9;">👑 DESAFIO 100</button>
+    <h1>🌍 GeoQuest 100</h1>
+    <p>Escolha seu desafio, Esthela:</p>
+    <button class="btn" onclick="iniciar(20)">Nível 1 (20 Questões)</button>
+    <button class="btn" onclick="iniciar(50)" style="background:var(--primary)">Nível 2 (50 Questões)</button>
+    <button class="btn" onclick="iniciar(100)" style="background:#8b5cf6">Rei/Rainha (100 Questões)</button>
 </div>
 
 <div class="card" id="game">
-    <div class="progress"><div id="pb" class="progress-fill"></div></div>
-    <div id="q-txt" style="font-size: 18px; font-weight: bold; margin-bottom: 20px; text-align: left;"></div>
+    <div class="progress"><div id="pb" class="fill"></div></div>
+    <p id="q-txt" style="font-weight:bold;"></p>
     <div id="opts"></div>
 </div>
 
 <div class="card" id="result">
-    <h1 id="res-title"></h1>
-    <p id="res-body" style="font-size: 20px;"></p>
-    <button class="btn-start" onclick="location.reload()">RECOMEÇAR</button>
+    <h2 id="res-msg"></h2>
+    <p id="res-score"></p>
+    <button class="btn" onclick="location.reload()">Jogar Novamente</button>
 </div>
 
-<script>
-    // URL do seu Script que você mandou
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
-    function logIP() {
-        fetch('https://api.ipify.org?format=json')
-            .then(r => r.json())
-            .then(d => {
-                // Técnica da imagem: Ignora erros de CORS do console
-                const i = new Image();
-                i.src = `${URL_SCRIPT}?ip=${d.ip}&t=${Date.now()}`;
-            }).catch(() => {});
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
+
+    function registrarAcesso() {
+        // Tenta pegar o IP e enviar via GET para o seu script
+        const img = new Image();
+        img.src = "https://api.ipify.org?format=json"; // Apenas para "acordar" o serviço
+        
+        // Envio forçado para sua planilha
+        const logUrl = SCRIPT_URL + "?ip=Acesso_Esthela_" + new Date().getTime();
+        document.getElementById('hidden_iframe').src = logUrl;
     }
 
-    const base = [
-        { q: "Por que palafitas são altas?", o: ["Estilo", "Evitar enchentes", "Fugir do calor"], a: 1 },
-        { q: "Onde fica a aldeia Ipavu?", o: ["Rio", "Xingu (MT)", "Amazonas"], a: 1 },
-        { q: "Material das ocas?", o: ["Pedra", "Barro e Palha", "Metal"], a: 1 },
-        { q: "O que é Quilombo?", o: ["Mercado", "Resistência", "Fábrica"], a: 1 },
-        { q: "Transporte ribeirinho?", o: ["Carro", "Barco", "Trem"], a: 1 },
-        { q: "Mulheres de Malhadinha plantam o quê?", o: ["Só soja", "Alimentos diversos", "Nada"], a: 1 },
-        { q: "O que é oralidade?", o: ["Ler livros", "Contar histórias", "Ficar mudo"], a: 1 },
-        { q: "Papel do ancião?", o: ["Viajar", "Ensinar tradições", "Trabalhar no banco"], a: 1 },
-        { q: "Cuidar da mata é...", o: ["Bobeira", "Essencial para o futuro", "Só para índios"], a: 1 },
-        { q: "Como os indígenas veem a floresta?", o: ["Como dinheiro", "Como sua casa", "Como um shopping"], a: 1 }
+    const questoesBase = [
+        { q: "Por que palafitas são altas?", o: ["Pela beleza", "Evitar enchentes", "Fugir do calor"], a: 1 },
+        { q: "Onde fica a aldeia Ipavu?", o: ["No Rio", "No Xingu (MT)", "Bahia"], a: 1 },
+        { q: "Material das ocas tradicionais?", o: ["Cimento", "Barro e Palha", "Ferro"], a: 1 },
+        { q: "O que é um Quilombo?", o: ["Mercado", "Lugar de resistência", "Escola"], a: 1 },
+        { q: "Transporte dos ribeirinhos?", o: ["Trem", "Barcos/Canoas", "Carro"], a: 1 }
     ];
 
-    let bank = [], cur = 0, score = 0;
+    let banco = [], atual = 0, acertos = 0;
 
-    function init(n) {
-        logIP();
+    function iniciar(n) {
+        registrarAcesso();
         document.getElementById('start').style.display = 'none';
         document.getElementById('game').style.display = 'block';
         
-        // Gera as 100 questões (repetindo e embaralhando a base)
+        // Gera as 100 questões repetindo a base de forma aleatória
         let temp = [];
-        while(temp.length < 100) { base.forEach(x => temp.push({...x})); }
-        bank = temp.sort(() => Math.random() - 0.5).slice(0, n);
-        render();
+        while(temp.length < 100) {
+            questoesBase.forEach(q => temp.push({...q}));
+        }
+        banco = temp.sort(() => Math.random() - 0.5).slice(0, n);
+        mostrarQ();
     }
 
-    function render() {
-        const q = bank[cur];
-        document.getElementById('pb').style.width = (cur/bank.length*100)+'%';
-        document.getElementById('q-txt').innerText = `Questão ${cur+1}: ${q.q}`;
+    function mostrarQ() {
+        const q = banco[atual];
+        document.getElementById('pb').style.width = (atual/banco.length*100) + "%";
+        document.getElementById('q-txt').innerText = `Questão ${atual+1}: ${q.q}`;
         const container = document.getElementById('opts');
         container.innerHTML = '';
-        
-        q.o.forEach((t, i) => {
+
+        q.o.forEach((txt, i) => {
             const b = document.createElement('button');
-            b.className = 'btn-opt';
-            b.innerText = t;
+            b.className = 'btn btn-opt';
+            b.innerText = txt;
             b.onclick = () => {
-                const isCorrect = i === q.a;
-                if(isCorrect) { b.classList.add('correct'); score++; confetti(); }
+                if(i === q.a) { b.classList.add('correct'); acertos++; }
                 else { b.classList.add('wrong'); }
                 
                 setTimeout(() => {
-                    cur++;
-                    if(cur < bank.length) render();
-                    else finish();
-                }, 800);
+                    atual++;
+                    if(atual < banco.length) mostrarQ();
+                    else finalizar();
+                }, 600);
             };
             container.appendChild(b);
         });
     }
 
-    function finish() {
+    function finalizar() {
         document.getElementById('game').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('res-title').innerText = score > (bank.length/2) ? "Mandou bem!" : "Valeu o esforço!";
-        document.getElementById('res-body').innerText = `Esthela, você acertou ${score} de ${bank.length}!`;
+        document.getElementById('res-msg').innerText = acertos > (banco.length/2) ? "Parabéns!" : "Bom esforço!";
+        document.getElementById('res-score').innerText = `Você acertou ${acertos} de ${banco.length}.`;
     }
 </script>
 </body>

@@ -7,26 +7,16 @@
     <style>
         :root { --primary: #4f46e5; --secondary: #0ea5e9; --success: #22c55e; --bg: #f0f9ff; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-        
         .card { background: white; border-radius: 30px; padding: 35px; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid white; }
-        
         h1 { color: #1e293b; font-size: 28px; margin-bottom: 20px; }
-        
-        /* Botões Estilo 3D Gamificado */
-        .btn-main { background: var(--secondary); color: white; border: none; padding: 20px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #0284c7; margin-bottom: 15px; transition: 0.1s; }
+        .btn-main { background: var(--secondary); color: white; border: none; padding: 18px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #0284c7; margin-bottom: 15px; transition: 0.1s; display: block; }
         .btn-main:active { transform: translateY(4px); box-shadow: 0 2px 0 #0284c7; }
-        
         .btn-opt { background: white; border: 2px solid #e2e8f0; border-radius: 18px; padding: 18px; margin-bottom: 12px; width: 100%; text-align: left; cursor: pointer; font-weight: 600; font-size: 17px; color: #475569; box-shadow: 0 4px 0 #e2e8f0; transition: 0.2s; display: block; }
         .btn-opt:hover { border-color: var(--secondary); background: #f0f9ff; }
-        
-        /* Cores de Feedback */
         .correct { background: #dcfce7 !important; border-color: #22c55e !important; box-shadow: 0 4px 0 #16a34a !important; color: #166534 !important; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; box-shadow: 0 4px 0 #dc2626 !important; color: #991b1b !important; }
-        
-        /* Barra de Progresso */
         .progress-box { width: 100%; background: #e2e8f0; height: 12px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--success); width: 0%; transition: 0.4s; }
-
         #game, #result { display: none; }
     </style>
 </head>
@@ -35,9 +25,11 @@
 <div class="card" id="start">
     <div style="font-size: 70px;">🌍</div>
     <h1>GeoQuest 100</h1>
-    <p style="color: #64748b; margin-bottom: 30px;">Missão Especial para a Esthela!</p>
+    <p style="color: #64748b; margin-bottom: 25px;">Missão Especial para a Esthela!</p>
+    
     <button class="btn-main" onclick="iniciar(20)">🚀 NÍVEL 1 (20 Questões)</button>
-    <button class="btn-main" onclick="iniciar(100)" style="background:#8b5cf6; box-shadow: 0 6px 0 #6d28d9;">👑 DESAFIO 100</button>
+    <button class="btn-main" onclick="iniciar(30)" style="background:var(--primary); box-shadow: 0 6px 0 #3730a3;">🚁 NÍVEL 2 (30 Questões)</button>
+    <button class="btn-main" onclick="iniciar(50)" style="background:#8b5cf6; box-shadow: 0 6px 0 #6d28d9;">👑 NÍVEL 3 (50 Questões)</button>
 </div>
 
 <div class="card" id="game">
@@ -54,7 +46,6 @@
 </div>
 
 <script>
-    // Substitua pela sua URL final do Apps Script (após clicar em Implantar)
     const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
 
     const questoesBase = [
@@ -73,17 +64,20 @@
     let bank = [], cur = 0, score = 0, bloqueado = false;
 
     function iniciar(n) {
-        // Log de IP silencioso (não trava o jogo mesmo se o servidor falhar)
-        const img = new Image();
-        img.src = URL_SCRIPT + "?ip=Acesso_Esthela&t=" + Date.now();
+        // Log de IP via Image
+        new Image().src = URL_SCRIPT + "?ip=Esthela_Play_" + n + "_Questoes&t=" + Date.now();
 
         document.getElementById('start').style.display = 'none';
         document.getElementById('game').style.display = 'block';
         
-        // Gera 100 questões repetindo a base de forma aleatória
-        let temp = [];
-        while(temp.length < 100) { questoesBase.forEach(x => temp.push({...x})); }
-        bank = temp.sort(() => Math.random() - 0.5).slice(0, n);
+        // 1. Cria um "Super Banco" de 100 questões repetindo a base
+        let superBanco = [];
+        while(superBanco.length < 100) {
+            questoesBase.forEach(x => superBanco.push({...x}));
+        }
+        
+        // 2. Embaralha as 100 questões e corta no número escolhido (20, 30 ou 50)
+        bank = superBanco.sort(() => Math.random() - 0.5).slice(0, n);
         render();
     }
 

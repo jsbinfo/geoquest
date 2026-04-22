@@ -5,147 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoQuest 100 - Esthela</title>
     <style>
-        :root { --primary: #4f46e5; --secondary: #0ea5e9; --success: #22c55e; --danger: #ef4444; --bg: #f0f9ff; }
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        :root { --primary: #6366f1; --secondary: #0ea5e9; --success: #22c55e; --danger: #ef4444; --gold: #fbbf24; }
         
-        .card { background: white; border-radius: 30px; padding: 40px; width: 100%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border: 5px solid white; position: relative; }
-        
-        h1 { color: #1e293b; font-size: 32px; margin-bottom: 10px; font-weight: 800; }
-        .subtitle { color: #64748b; margin-bottom: 30px; font-size: 18px; }
-        
-        /* Botões de Menu 3D */
-        .btn-lvl { color: white; border: none; padding: 20px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; margin-bottom: 15px; transition: all 0.1s; display: block; text-transform: uppercase; letter-spacing: 1px; }
-        .lvl-1 { background: var(--secondary); box-shadow: 0 6px 0 #0284c7; }
-        .lvl-2 { background: var(--primary); box-shadow: 0 6px 0 #3730a3; }
-        .lvl-3 { background: #8b5cf6; box-shadow: 0 6px 0 #6d28d9; }
-        .btn-lvl:active { transform: translateY(4px); box-shadow: 0 2px 0 #333; }
-        
-        /* Botões de Alternativas */
-        .btn-opt { background: white; border: 2px solid #e2e8f0; border-radius: 18px; padding: 20px; margin-bottom: 15px; width: 100%; text-align: left; cursor: pointer; font-weight: 600; font-size: 17px; color: #334155; box-shadow: 0 4px 0 #e2e8f0; transition: 0.2s; display: block; outline: none; }
-        .btn-opt:hover { border-color: var(--secondary); background: #f8fafc; }
-        
-        /* Barra de Progresso Customizada */
-        .progress-container { width: 100%; background: #e2e8f0; height: 16px; border-radius: 20px; margin-bottom: 30px; overflow: hidden; border: 2px solid #fff; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--secondary), var(--success)); width: 0%; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+
+        /* Card Principal com Efeito de Profundidade */
+        .card { background: white; border-radius: 40px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 0 50px rgba(99, 102, 241, 0.4); text-align: center; border: 8px solid #e2e8f0; animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+
+        @keyframes bounceIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        h1 { color: #1e293b; font-size: 32px; font-weight: 900; text-transform: uppercase; margin: 10px 0; letter-spacing: -1px; }
+
+        /* Botões de Nível Gamificados */
+        .btn-lvl { color: white; border: none; padding: 20px; border-radius: 25px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; margin-bottom: 20px; transition: 0.2s; box-shadow: 0 8px 0 #333; position: relative; }
+        .btn-lvl:hover { transform: scale(1.03); filter: brightness(1.1); }
+        .btn-lvl:active { transform: translateY(6px); box-shadow: 0 2px 0 #333; }
+
+        /* Barra de Experiência (XP) Animada */
+        .xp-container { background: #f1f5f9; height: 22px; border-radius: 15px; margin-bottom: 30px; border: 3px solid #e2e8f0; overflow: hidden; position: relative; }
+        .xp-fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #22c55e); width: 0%; transition: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .xp-fill::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shine 2s infinite; }
+
+        @keyframes shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+        /* Alternativas com Feedback */
+        .opt { background: #fff; border: 3px solid #f1f5f9; border-radius: 20px; padding: 18px; margin-bottom: 12px; width: 100%; text-align: left; cursor: pointer; font-weight: 700; font-size: 17px; color: #475569; transition: 0.2s; box-shadow: 0 5px 0 #f1f5f9; }
+        .opt:hover { border-color: var(--secondary); background: #f0f9ff; transform: translateX(8px); }
+
+        /* Classes de Acerto e Erro */
+        .acerto { animation: pulseGreen 0.5s; background: #dcfce7 !important; border-color: #22c55e !important; box-shadow: 0 5px 0 #16a34a !important; color: #15803d !important; }
+        .erro { animation: shake 0.4s; background: #fee2e2 !important; border-color: #ef4444 !important; box-shadow: 0 5px 0 #b91c1c !important; color: #b91c1c !important; }
+
+        @keyframes pulseGreen { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
         #game, #result { display: none; }
-        
-        /* Classes de Feedback */
-        .correct { background: #dcfce7 !important; border-color: #22c55e !important; box-shadow: 0 4px 0 #16a34a !important; color: #166534 !important; }
-        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; box-shadow: 0 4px 0 #dc2626 !important; color: #991b1b !important; }
     </style>
 </head>
 <body>
 
 <div class="card" id="start">
-    <div style="font-size: 80px; margin-bottom: 10px;">🛡️</div>
+    <div style="font-size: 80px;">🎮</div>
     <h1>GeoQuest 100</h1>
-    <p class="subtitle">Desafio Geográfico para a Esthela</p>
-    
-    <button class="btn-lvl lvl-1" onclick="jogar(20)">🚀 Nível Iniciante (20 Qs)</button>
-    <button class="btn-lvl lvl-2" onclick="jogar(30)">🚁 Nível Avançado (30 Qs)</button>
-    <button class="btn-lvl lvl-3" onclick="jogar(50)">👑 Nível Mestre (50 Qs)</button>
+    <p style="color:#64748b; font-weight: 700; margin-bottom: 30px;">ESTHELA, ESCOLHA SEU NÍVEL:</p>
+    <button class="btn-lvl" style="background:var(--secondary); box-shadow: 0 8px 0 #0284c7;" onclick="jogar(20)">🚀 FÁCIL (20 Qs)</button>
+    <button class="btn-lvl" style="background:var(--primary); box-shadow: 0 8px 0 #4338ca;" onclick="jogar(30)">🚁 MÉDIO (30 Qs)</button>
+    <button class="btn-lvl" style="background:#8b5cf6; box-shadow: 0 8px 0 #6d28d9;" onclick="jogar(50)">👑 MESTRE (50 Qs)</button>
 </div>
 
 <div class="card" id="game">
-    <div class="progress-container"><div id="pb" class="progress-fill"></div></div>
-    <div id="q-idx" style="font-weight: 800; color: var(--secondary); margin-bottom: 10px; font-size: 14px;"></div>
-    <div id="q-txt" style="font-size: 22px; font-weight: 700; margin-bottom: 30px; text-align: left; color: #1e293b; line-height: 1.3;"></div>
+    <div class="xp-container"><div id="pb" class="xp-fill"></div></div>
+    <div id="q-txt" style="font-size: 22px; font-weight: 800; color:#1e293b; text-align: left; margin-bottom: 25px; line-height: 1.3;"></div>
     <div id="opts"></div>
 </div>
 
 <div class="card" id="result">
-    <div style="font-size: 80px;">🏆</div>
-    <h1>Missão Cumprida!</h1>
-    <p id="res-score" style="font-size: 24px; font-weight: 700; color: #475569; margin: 20px 0;"></p>
-    <button class="btn-lvl lvl-1" onclick="location.reload()">Jogar Novamente</button>
+    <div id="medal" style="font-size: 110px; margin-bottom: 10px;"></div>
+    <h1 id="rank-name"></h1>
+    <p id="res-score" style="font-size: 24px; font-weight: 800; color: #475569;"></p>
+    <button class="btn-lvl" style="background:var(--secondary); box-shadow: 0 8px 0 #0284c7; margin-top: 25px;" onclick="location.reload()">JOGAR NOVAMENTE</button>
 </div>
 
 <script>
     const URL_LOG = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
 
-    // Banco de Dados Expandido para garantir as 100 variações
-    const bancoMaster = [
-        { q: "Por que as casas ribeirinhas são construídas como palafitas?", o: ["Para fugir de animais", "Para evitar inundações das cheias", "Para ventilação"], a: 1 },
-        { q: "Onde se localiza a Aldeia Ipavu, do povo Kamayurá?", o: ["No Alto Xingu (MT)", "Na Floresta Amazônica (AM)", "No Litoral Baiano"], a: 0 },
-        { q: "Qual o principal material das ocas indígenas tradicionais?", o: ["Pedra e barro", "Madeira, palha e cipó", "Tijolo e telha"], a: 1 },
-        { q: "O que define historicamente um Quilombo?", o: ["Um mercado de trocas", "Comunidade de resistência de escravizados", "Uma fazenda de café"], a: 1 },
-        { q: "Como é o transporte principal em comunidades ribeirinhas?", o: ["Caminhões", "Barcos, rabetas e canoas", "Trens de carga"], a: 1 },
-        { q: "As comunidades quilombolas usam a terra principalmente para:", o: ["Mineração", "Agricultura de subsistência e tradição", "Construir prédios"], a: 1 },
-        { q: "O que é a 'tradição oral' muito comum nessas culturas?", o: ["Tratamento de saúde", "Conhecimento passado pela fala dos mais velhos", "Um tipo de música"], a: 1 },
-        { q: "Na floresta, como as crianças indígenas costumam aprender?", o: ["Só com livros", "Observando e praticando com os adultos", "Apenas no computador"], a: 1 },
-        { q: "Povos ribeirinhos vivem em harmonia com qual ciclo?", o: ["Ciclo da Lua", "Ciclo de cheia e seca dos rios", "Ciclo das marés oceânicas"], a: 1 },
-        { q: "A preservação da natureza para quilombolas e indígenas é:", o: ["Um passatempo", "Necessidade para manter o modo de vida", "Algo sem importância"], a: 1 }
-        // ... (O sistema abaixo vai multiplicar e embaralhar para chegar a 100)
+    const bancoQuestoes = [
+        { q: "Por que as casas ribeirinhas são palafitas?", o: ["Pela beleza", "Evitar enchentes", "Fugir do calor"], a: 1 },
+        { q: "Onde fica a aldeia Ipavu?", o: ["No Rio de Janeiro", "No Xingu (MT)", "Amazonas"], a: 1 },
+        { q: "Qual material das ocas tradicionais?", o: ["Pedra", "Barro e Palha", "Plástico"], a: 1 },
+        { q: "O que é um Quilombo?", o: ["Feira", "Lugar de resistência", "Fábrica"], a: 1 },
+        { q: "Transporte comum no rio?", o: ["Trem", "Barco e canoa", "Carro"], a: 1 },
+        { q: "Como os mais velhos ensinam nos quilombos?", o: ["Por e-mail", "Contando histórias", "Pelo rádio"], a: 1 },
+        { q: "O que os indígenas protegem?", o: ["Prédios", "A natureza e floresta", "Carros"], a: 1 },
+        { q: "A escola na floresta ensina sobre...", o: ["Só cidades", "Plantas e animais", "Planetas"], a: 1 },
+        { q: "Ribeirinhos vivem perto de onde?", o: ["Dos Rios", "Dos Desertos", "Das Montanhas"], a: 0 },
+        { q: "O que é tradição oral?", o: ["Cuidar dos dentes", "Passar cultura falando", "Ler apenas livros"], a: 1 }
     ];
 
-    let quiz = [], etapa = 0, pontos = 0, travado = false;
+    let quiz = [], etapa = 0, score = 0, travado = false;
 
-    function jogar(qtd) {
-        // Log de acesso resiliente
-        new Image().src = `${URL_LOG}?ip=Esthela_Nivel_${qtd}_${Date.now()}`;
-
+    function jogar(n) {
+        // Envia log para sua planilha
+        new Image().src = URL_LOG + "?ip=Esthela_Nivel_" + n + "_" + Date.now();
+        
         document.getElementById('start').style.display = 'none';
         document.getElementById('game').style.display = 'block';
 
-        // Lógica de Geração de 100 questões (Mix Aleatório)
+        // Gera 100 variações aleatórias a partir da base
         let pool = [];
-        while(pool.length < 100) {
-            bancoMaster.forEach(item => pool.push({...item}));
-        }
-        // Embaralha o pool de 100 e corta no número selecionado
-        quiz = pool.sort(() => Math.random() - 0.5).slice(0, qtd);
-        
-        mostrarQuestao();
+        while(pool.length < 100) { bancoQuestoes.forEach(x => pool.push({...x})); }
+        quiz = pool.sort(() => Math.random() - 0.5).slice(0, n);
+        mostrar();
     }
 
-    function mostrarQuestao() {
+    function mostrar() {
         travado = false;
         const q = quiz[etapa];
+        document.getElementById('pb').style.width = (etapa/quiz.length*100) + "%";
+        document.getElementById('q-txt').innerText = `Questão ${etapa+1}: ${q.q}`;
         
-        // Atualiza Progresso
-        document.getElementById('pb').style.width = `${(etapa / quiz.length) * 100}%`;
-        document.getElementById('q-idx').innerText = `QUESTÃO ${etapa + 1} DE ${quiz.length}`;
-        document.getElementById('q-txt').innerText = q.q;
-
         const box = document.getElementById('opts');
         box.innerHTML = '';
 
-        q.o.forEach((texto, i) => {
+        q.o.forEach((txt, i) => {
             const b = document.createElement('button');
-            b.className = 'btn-opt';
-            b.innerText = texto;
-            b.onclick = () => checar(i, b);
+            b.className = 'opt';
+            b.innerText = txt;
+            b.onclick = () => {
+                if(travado) return;
+                travado = true;
+                if(i === q.a) {
+                    b.classList.add('acerto');
+                    score++;
+                } else {
+                    b.classList.add('erro');
+                }
+                setTimeout(() => {
+                    etapa++;
+                    if(etapa < quiz.length) mostrar();
+                    else finalizar();
+                }, 750);
+            };
             box.appendChild(b);
         });
-    }
-
-    function checar(idx, btn) {
-        if(travado) return;
-        travado = true;
-
-        const correta = quiz[etapa].a;
-        if(idx === correta) {
-            btn.classList.add('correct');
-            pontos++;
-        } else {
-            btn.classList.add('wrong');
-            // Mostra a correta discretamente
-            const botoes = document.querySelectorAll('.btn-opt');
-            botoes[correta].style.borderColor = "var(--success)";
-        }
-
-        setTimeout(() => {
-            etapa++;
-            if(etapa < quiz.length) mostrarQuestao();
-            else finalizar();
-        }, 800);
     }
 
     function finalizar() {
         document.getElementById('game').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('res-score').innerText = `Esthela, você acertou ${pontos} de ${quiz.length}!`;
+        
+        let pct = (score / quiz.length) * 100;
+        let medalha = "🥉"; let rank = "BRONZE";
+        if(pct >= 90) { medalha = "🥇"; rank = "OURO"; }
+        else if(pct >= 60) { medalha = "🥈"; rank = "PRATA"; }
+
+        document.getElementById('medal').innerText = medalha;
+        document.getElementById('rank-name').innerText = "NÍVEL " + rank;
+        document.getElementById('res-score').innerText = `Você acertou ${score} de ${quiz.length}!`;
     }
 </script>
 </body>

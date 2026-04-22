@@ -2,113 +2,37 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoQuest 100 - Esthela</title>
+    <title>GeoQuest 100</title>
     <style>
-        :root { --primary: #4f46e5; --secondary: #0ea5e9; --success: #22c55e; --bg: #f0f9ff; }
-        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; border-radius: 25px; padding: 25px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        .btn { background: var(--secondary); color: white; border: none; padding: 15px; border-radius: 15px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .btn-opt { background: #f8fafc; border: 2px solid #e2e8f0; color: #334155; text-align: left; }
-        .correct { background: #dcfce7; border-color: #22c55e; }
-        .wrong { background: #fee2e2; border-color: #ef4444; }
-        .progress { background: #e2e8f0; height: 8px; border-radius: 10px; margin-bottom: 20px; }
-        .fill { height: 100%; background: var(--success); width: 0%; border-radius: 10px; transition: 0.3s; }
+        body { font-family: sans-serif; background: #f0f9ff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; border-radius: 20px; padding: 30px; width: 400px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn { background: #0ea5e9; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
+        .btn-opt { background: #f8fafc; border: 1px solid #ddd; color: #333; margin-top: 5px; }
+        .progress { background: #eee; height: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .fill { height: 100%; background: #22c55e; width: 0%; border-radius: 5px; transition: 0.3s; }
         #game, #result { display: none; }
     </style>
 </head>
 <body>
 
-<div class="card" id="start">
-    <h1>🌍 GeoQuest 100</h1>
-    <p>Escolha seu desafio, Esthela:</p>
-    <button class="btn" onclick="iniciar(20)">Nível 1 (20 Questões)</button>
-    <button class="btn" onclick="iniciar(50)" style="background:var(--primary)">Nível 2 (50 Questões)</button>
-    <button class="btn" onclick="iniciar(100)" style="background:#8b5cf6">Rei/Rainha (100 Questões)</button>
-</div>
+    <div class="card" id="start">
+        <h1>🌍 GeoQuest 100</h1>
+        <button class="btn" onclick="iniciar(20)">Nível 1 (20 Qs)</button>
+        <button class="btn" onclick="iniciar(100)">Nível Rei (100 Qs)</button>
+    </div>
 
-<div class="card" id="game">
-    <div class="progress"><div id="pb" class="fill"></div></div>
-    <p id="q-txt" style="font-weight:bold;"></p>
-    <div id="opts"></div>
-</div>
+    <div class="card" id="game">
+        <div class="progress"><div id="pb" class="fill"></div></div>
+        <p id="q-txt"></p>
+        <div id="opts"></div>
+    </div>
 
-<div class="card" id="result">
-    <h2 id="res-msg"></h2>
-    <p id="res-score"></p>
-    <button class="btn" onclick="location.reload()">Jogar Novamente</button>
-</div>
+    <div class="card" id="result">
+        <h2>Fim de Jogo!</h2>
+        <p id="res-score"></p>
+        <button class="btn" onclick="location.reload()">Recomeçar</button>
+    </div>
 
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-
-<script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
-
-    function registrarAcesso() {
-        // Tenta pegar o IP e enviar via GET para o seu script
-        const img = new Image();
-        img.src = "https://api.ipify.org?format=json"; // Apenas para "acordar" o serviço
-        
-        // Envio forçado para sua planilha
-        const logUrl = SCRIPT_URL + "?ip=Acesso_Esthela_" + new Date().getTime();
-        document.getElementById('hidden_iframe').src = logUrl;
-    }
-
-    const questoesBase = [
-        { q: "Por que palafitas são altas?", o: ["Pela beleza", "Evitar enchentes", "Fugir do calor"], a: 1 },
-        { q: "Onde fica a aldeia Ipavu?", o: ["No Rio", "No Xingu (MT)", "Bahia"], a: 1 },
-        { q: "Material das ocas tradicionais?", o: ["Cimento", "Barro e Palha", "Ferro"], a: 1 },
-        { q: "O que é um Quilombo?", o: ["Mercado", "Lugar de resistência", "Escola"], a: 1 },
-        { q: "Transporte dos ribeirinhos?", o: ["Trem", "Barcos/Canoas", "Carro"], a: 1 }
-    ];
-
-    let banco = [], atual = 0, acertos = 0;
-
-    function iniciar(n) {
-        registrarAcesso();
-        document.getElementById('start').style.display = 'none';
-        document.getElementById('game').style.display = 'block';
-        
-        // Gera as 100 questões repetindo a base de forma aleatória
-        let temp = [];
-        while(temp.length < 100) {
-            questoesBase.forEach(q => temp.push({...q}));
-        }
-        banco = temp.sort(() => Math.random() - 0.5).slice(0, n);
-        mostrarQ();
-    }
-
-    function mostrarQ() {
-        const q = banco[atual];
-        document.getElementById('pb').style.width = (atual/banco.length*100) + "%";
-        document.getElementById('q-txt').innerText = `Questão ${atual+1}: ${q.q}`;
-        const container = document.getElementById('opts');
-        container.innerHTML = '';
-
-        q.o.forEach((txt, i) => {
-            const b = document.createElement('button');
-            b.className = 'btn btn-opt';
-            b.innerText = txt;
-            b.onclick = () => {
-                if(i === q.a) { b.classList.add('correct'); acertos++; }
-                else { b.classList.add('wrong'); }
-                
-                setTimeout(() => {
-                    atual++;
-                    if(atual < banco.length) mostrarQ();
-                    else finalizar();
-                }, 600);
-            };
-            container.appendChild(b);
-        });
-    }
-
-    function finalizar() {
-        document.getElementById('game').style.display = 'none';
-        document.getElementById('result').style.display = 'block';
-        document.getElementById('res-msg').innerText = acertos > (banco.length/2) ? "Parabéns!" : "Bom esforço!";
-        document.getElementById('res-score').innerText = `Você acertou ${acertos} de ${banco.length}.`;
-    }
-</script>
+    <script src="script.js"></script>
 </body>
 </html>

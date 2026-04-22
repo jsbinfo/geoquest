@@ -3,6 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoQuest 100 - Som e Explosão</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #0ea5e9; --success: #22c55e; --danger: #ef4444; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; }
+
+        #flash { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 100; opacity: 0; }
+        .card { background: white; border-radius: 40px; padding: 40px; width: 90%; max-width: 420px; box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; border: 8px solid #e2e8f0; position: relative; z-index: 10; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* Hover dinâmico para os alunos */
+        .card:hover { transform: scale(1.02); border-color: var(--secondary); }
+        .btn { color: white; border: none; padding: 20px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; margin-bottom: 15px; transition: 0.1s; box-shadow: 0 8px 0 #333; display: block; }
+        .btn:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 11px 0 #333; }
+        .btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #333; }
+
+        .opt { background: #fff; border: 3px solid #f1f5f9; border-radius: 20px; padding: 18px; margin-bottom: 12px; width: 100%; text-align: left; cursor: pointer; font-weight: 700; font-size: 16px; color: #475569; transition: 0.2s; box-shadow: 0 5px 0 #f1f5f9; display: block; }
+        .opt:hover { transform: scale(1.03) translateX(10px); border-color: var(--secondary); background: #f0f9ff; }
+
+        /* Animações de Impacto */
+        .anim-acerto { animation: successParty 0.5s ease-out; background: #dcfce7 !important; border-color: var(--success) !important; }
+        @keyframes successParty { 0% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 30px var(--success); } 100% { transform: scale(1); } }
+
+        .anim-erro { animation: explosionShake 0.4s; background: #fee2e2 !important; border-color: var(--danger) !important; }
+        @keyframes explosionShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-15px); } 40% { transform: translateX(15px); } 60% { transform: translateX(-10px); } 80% { transform: translateX(10px); } }
+
+        .flash-red { background: rgba(239, 68, 68, 0.6); animation: flashEffect 0.3s; opacity: 1 !important; }
+        @keyframes flashEffect { from { opacity: 0; } to { opacity: 1; } }
+
+        #game, #result { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="flash"></div>
+
+<div class="card" id="box">
+    <div id="start">
+        <div style="font-size: 70px;">🔊</div>
+        <h1>GeoQuest 100</h1>
+        <p style="color: #64748b; margin-bottom: 20px;">Clique para iniciar com som!</p>
+        <button class="btn" style="background:var(--secondary);" onclick="jogar(20)">🚀 20 QUESTÕES</button>
+        <button class="btn" style="background:var(--primary);" onclick="jogar(30)">🚁 30 QUESTÕES</button>
+        <button class="btn" style="background:#8b5cf6;" onclick="jogar(50)">👑 50 QUESTÕES</button>
+    </div>
+
+    <div id="game">
+        <div id="q-txt" style="font-size: 20px; font-weight: 800; text-align: left; margin-bottom: 20px;"></div>
+        <div id="opts"></div>
+    </div>
+
+    <div id="result">
+        <h1 id="res-rank"></h1>
+        <p id="res-score" style="font-size: 20px; font-weight: 700; color: #64748b;"></p>
+        <button class="btn" style="background:var(--secondary);" onclick="location.reload()">RELOGAR</button>
+    </div>
+</div>
+
+<script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Função para gerar sons matemáticos (sem arquivos externos)
+    function playSound(type) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'acerto') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    const banco = [
+        { q: "Por que palafitas são altas?", o: ["Estilo", "Evitar enchentes", "Calor"], a: 1 },
+        { q: "Aldeia Ipavu fica onde?", o: ["Rio", "Xingu (MT)", "Amazonas"], a: 1 },
+        { q: "O que é um Quilombo?", o: ["Loja", "Resistência", "Parque"], a: 1 },
+        { q: "Transporte ribeirinho?", o: ["Carro", "Barco", "Trem"], a: 1 }
+    ];
+
+    let quiz = [], cur = 0, score = 0, busy = false;
+
+    function jogar(n) {
+        audioCtx.resume(); // Ativa o áudio no clique do aluno
+        document.getElementById('start').style.display = 'none';
+        document.getElementById('game').style.display = 'block';
+        
+        let pool = [];
+        while(pool.length < 100) { banco.forEach(x => pool.push({...x})); }
+        quiz = pool.sort(() => Math.random() - 0.5).slice(0, n);
+        render();
+    }
+
+    function render() {
+        busy = false;
+        const q = quiz[cur];
+        document.getElementById('q-txt').innerText = `PERGUNTA ${cur+1}: ${q.q}`;
+        const box = document.getElementById('opts');
+        box.innerHTML = '';
+
+        q.o.forEach((txt, i) => {
+            const b = document.createElement('button');
+            b.className = 'opt';
+            b.innerText = txt;
+            b.onclick = () => {
+                if(busy) return;
+                busy = true;
+                if(i === q.a) {
+                    playSound('acerto');
+                    b.classList.add('anim-acerto');
+                    score++;
+                    document.body.style.background = "radial-gradient(circle, #22c55e, #0f172a)";
+                } else {
+                    playSound('erro');
+                    b.classList.add('anim-erro');
+                    document.getElementById('flash').classList.add('flash-red');
+                    document.getElementById('box').classList.add('anim-erro');
+                }
+
+                setTimeout(() => {
+                    document.body.style.background = "#0f172a";
+                    document.getElementById('flash').classList.remove('flash-red');
+                    document.getElementById('box').classList.remove('anim-erro');
+                    cur++;
+                    if(cur < quiz.length) render();
+                    else finalizar();
+                }, 700);
+            };
+            box.appendChild(b);
+        });
+    }
+
+    function finalizar() {
+        document.getElementById('game').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('res-rank').innerText = score > (quiz.length*0.7) ? "👑 EXCELENTE!" : "🥉 CONTINUE TENTANDO!";
+        document.getElementById('res-score').innerText = `Acertos: ${score} de ${quiz.length}`;
+    }
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoQuest 100 - Desafio dos Alunos</title>
     <style>
         :root { --primary: #6366f1; --secondary: #0ea5e9; --success: #22c55e; --danger: #ef4444; --gold: #fbbf24; --bg: #0f172a; }

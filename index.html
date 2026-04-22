@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoQuest 100 - Som e Explosão</title>
+    <title>GeoQuest 100 - Áudio Imersivo</title>
     <style>
         :root { --primary: #6366f1; --secondary: #0ea5e9; --success: #22c55e; --danger: #ef4444; }
         body { font-family: 'Segoe UI', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; }
 
         #flash { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 100; opacity: 0; }
-        .card { background: white; border-radius: 40px; padding: 40px; width: 90%; max-width: 420px; box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; border: 8px solid #e2e8f0; position: relative; z-index: 10; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .card { background: white; border-radius: 40px; padding: 40px; width: 90%; max-width: 420px; box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; border: 8px solid #e2e8f0; position: relative; z-index: 10; }
 
-        /* Hover dinâmico para os alunos */
-        .card:hover { transform: scale(1.02); border-color: var(--secondary); }
         .btn { color: white; border: none; padding: 20px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; margin-bottom: 15px; transition: 0.1s; box-shadow: 0 8px 0 #333; display: block; }
         .btn:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 11px 0 #333; }
         .btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #333; }
@@ -20,14 +18,13 @@
         .opt { background: #fff; border: 3px solid #f1f5f9; border-radius: 20px; padding: 18px; margin-bottom: 12px; width: 100%; text-align: left; cursor: pointer; font-weight: 700; font-size: 16px; color: #475569; transition: 0.2s; box-shadow: 0 5px 0 #f1f5f9; display: block; }
         .opt:hover { transform: scale(1.03) translateX(10px); border-color: var(--secondary); background: #f0f9ff; }
 
-        /* Animações de Impacto */
+        /* Animações */
         .anim-acerto { animation: successParty 0.5s ease-out; background: #dcfce7 !important; border-color: var(--success) !important; }
-        @keyframes successParty { 0% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 30px var(--success); } 100% { transform: scale(1); } }
-
         .anim-erro { animation: explosionShake 0.4s; background: #fee2e2 !important; border-color: var(--danger) !important; }
-        @keyframes explosionShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-15px); } 40% { transform: translateX(15px); } 60% { transform: translateX(-10px); } 80% { transform: translateX(10px); } }
-
         .flash-red { background: rgba(239, 68, 68, 0.6); animation: flashEffect 0.3s; opacity: 1 !important; }
+
+        @keyframes successParty { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes explosionShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-15px); } 80% { transform: translateX(10px); } }
         @keyframes flashEffect { from { opacity: 0; } to { opacity: 1; } }
 
         #game, #result { display: none; }
@@ -39,9 +36,9 @@
 
 <div class="card" id="box">
     <div id="start">
-        <div style="font-size: 70px;">🔊</div>
+        <div style="font-size: 60px;">🎮</div>
         <h1>GeoQuest 100</h1>
-        <p style="color: #64748b; margin-bottom: 20px;">Clique para iniciar com som!</p>
+        <p style="color: #64748b; margin-bottom: 25px; font-weight: 600;">Clique abaixo para ativar o som e jogar!</p>
         <button class="btn" style="background:var(--secondary);" onclick="jogar(20)">🚀 20 QUESTÕES</button>
         <button class="btn" style="background:var(--primary);" onclick="jogar(30)">🚁 30 QUESTÕES</button>
         <button class="btn" style="background:#8b5cf6;" onclick="jogar(50)">👑 50 QUESTÕES</button>
@@ -55,50 +52,73 @@
     <div id="result">
         <h1 id="res-rank"></h1>
         <p id="res-score" style="font-size: 20px; font-weight: 700; color: #64748b;"></p>
-        <button class="btn" style="background:var(--secondary);" onclick="location.reload()">RELOGAR</button>
+        <button class="btn" style="background:var(--secondary);" onclick="location.reload()">REINICIAR</button>
     </div>
 </div>
 
 <script>
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Motor de Áudio Robusto
+    let audioCtx;
+    
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
 
-    // Função para gerar sons matemáticos (sem arquivos externos)
     function playSound(type) {
+        if (!audioCtx) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
-        if (type === 'acerto') {
+        const now = audioCtx.currentTime;
+
+        if (type === 'hover') {
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
-        } else {
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.exponentialRampToValueAtTime(600, now + 0.05);
+            gain.gain.setValueAtTime(0.05, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } 
+        else if (type === 'acerto') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523.25, now); // Nota Dó
+            osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.2);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.4);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        } 
+        else if (type === 'erro') {
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.2);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.4);
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.linearRampToValueAtTime(30, now + 0.3);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
         }
     }
 
     const banco = [
-        { q: "Por que palafitas são altas?", o: ["Estilo", "Evitar enchentes", "Calor"], a: 1 },
-        { q: "Aldeia Ipavu fica onde?", o: ["Rio", "Xingu (MT)", "Amazonas"], a: 1 },
+        { q: "Por que palafitas são altas?", o: ["Estilo", "Evitar enchentes", "Fugir do calor"], a: 1 },
+        { q: "Aldeia Ipavu fica no?", o: ["Rio", "Xingu (MT)", "Amazonas"], a: 1 },
         { q: "O que é um Quilombo?", o: ["Loja", "Resistência", "Parque"], a: 1 },
-        { q: "Transporte ribeirinho?", o: ["Carro", "Barco", "Trem"], a: 1 }
+        { q: "Transporte ribeirinho?", o: ["Carro", "Barco", "Moto"], a: 1 },
+        { q: "Tradição oral é passar cultura...", o: ["Por e-mail", "Pela fala", "Por livros"], a: 1 }
     ];
 
     let quiz = [], cur = 0, score = 0, busy = false;
 
     function jogar(n) {
-        audioCtx.resume(); // Ativa o áudio no clique do aluno
+        initAudio(); // Ativa o contexto de áudio no primeiro clique
         document.getElementById('start').style.display = 'none';
         document.getElementById('game').style.display = 'block';
         
@@ -111,7 +131,7 @@
     function render() {
         busy = false;
         const q = quiz[cur];
-        document.getElementById('q-txt').innerText = `PERGUNTA ${cur+1}: ${q.q}`;
+        document.getElementById('q-txt').innerText = `QUESTÃO ${cur+1}: ${q.q}`;
         const box = document.getElementById('opts');
         box.innerHTML = '';
 
@@ -119,6 +139,10 @@
             const b = document.createElement('button');
             b.className = 'opt';
             b.innerText = txt;
+            
+            // SOM AO PASSAR O MOUSE
+            b.onmouseenter = () => playSound('hover');
+
             b.onclick = () => {
                 if(busy) return;
                 busy = true;
@@ -150,199 +174,8 @@
     function finalizar() {
         document.getElementById('game').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('res-rank').innerText = score > (quiz.length*0.7) ? "👑 EXCELENTE!" : "🥉 CONTINUE TENTANDO!";
+        document.getElementById('res-rank').innerText = score >= (quiz.length*0.8) ? "👑 EXCELENTE!" : "🥉 BOM TRABALHO!";
         document.getElementById('res-score').innerText = `Acertos: ${score} de ${quiz.length}`;
-    }
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoQuest 100 - Desafio dos Alunos</title>
-    <style>
-        :root { --primary: #6366f1; --secondary: #0ea5e9; --success: #22c55e; --danger: #ef4444; --gold: #fbbf24; --bg: #0f172a; }
-        
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; overflow: hidden; position: relative; }
-
-        /* Card Principal com Entrada Animada */
-        .card { background: white; border-radius: 40px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 0 60px rgba(99, 102, 241, 0.5); text-align: center; border: 8px solid #e2e8f0; animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); position: relative; z-index: 10; transition: transform 0.1s ease-out; }
-
-        @keyframes bounceIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        h1 { color: #1e293b; font-size: 32px; font-weight: 900; text-transform: uppercase; margin: 10px 0; letter-spacing: -1px; }
-        .subtitle { color: #64748b; font-weight: 700; margin-bottom: 30px; text-transform: uppercase; font-size: 14px; }
-
-        /* Botões de Nível - Feedback Ativo no Mouse */
-        .btn-lvl { color: white; border: none; padding: 20px; border-radius: 25px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; margin-bottom: 20px; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 0 #333; position: relative; display: block; text-decoration: none; text-align: center; }
-        .btn-lvl:hover { transform: scale(1.05) translateY(-5px); filter: brightness(1.1); box-shadow: 0 12px 0 #333; }
-        .btn-lvl:active { transform: translateY(6px); box-shadow: 0 2px 0 #333; }
-
-        /* Barra de Experiência (XP) Animada */
-        .xp-container { background: #f1f5f9; height: 22px; border-radius: 15px; margin-bottom: 30px; border: 3px solid #e2e8f0; overflow: hidden; position: relative; }
-        .xp-fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #22c55e); width: 0%; transition: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; }
-        .xp-fill::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shine 2s infinite; }
-
-        @keyframes shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
-
-        /* Alternativas - Feedback Ativo no Mouse */
-        .opt { background: #fff; border: 3px solid #f1f5f9; border-radius: 20px; padding: 18px; margin-bottom: 12px; width: 100%; text-align: left; cursor: pointer; font-weight: 700; font-size: 17px; color: #475569; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 0 #f1f5f9; display: block; outline: none; }
-        .opt:hover { border-color: var(--secondary); background: #f0f9ff; transform: translateX(10px) scale(1.02); }
-
-        /* Gamificação: Efeitos de Acerto e Erro */
-        .acerto { animation: pulseGreen 0.6s; background: #dcfce7 !important; border-color: #22c55e !important; box-shadow: 0 5px 0 #16a34a !important; color: #15803d !important; }
-        .erro { animation: shakeExplosion 0.5s; background: #fee2e2 !important; border-color: #ef4444 !important; box-shadow: 0 5px 0 #b91c1c !important; color: #b91c1c !important; }
-        
-        /* Explosão Visual no Card Inteiro (para erro) */
-        .card-explosion { animation: cardShake 0.5s, flashRed 0.5s; }
-
-        @keyframes pulseGreen { 0% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); } 100% { transform: scale(1); } }
-        @keyframes shakeExplosion { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-15px); } 40% { transform: translateX(15px); } 60% { transform: translateX(-10px); } 80% { transform: translateX(10px); } }
-        @keyframes cardShake { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5px, -5px); } 30% { transform: translate(5px, 5px); } 50% { transform: translate(-5px, 5px); } 70% { transform: translate(5px, -5px); } }
-        @keyframes flashRed { 0%, 100% { border-color: #e2e8f0; } 50% { border-color: var(--danger); box-shadow: 0 0 50px rgba(239, 68, 68, 0.8); } }
-
-        /* Partículas de Confete (JS) */
-        .confetti { position: absolute; width: 10px; height: 10px; background: #f00; border-radius: 50%; z-index: 1; animation: confettiFall 3s ease-out forwards; }
-        @keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-
-        #game, #result { display: none; }
-    </style>
-</head>
-<body>
-
-<div class="card" id="main-card">
-    
-    <div id="start">
-        <div style="font-size: 80px;">🎮</div>
-        <h1>GeoQuest 100</h1>
-        <p class="subtitle">Desafio para todos os Alunos</p>
-        <button class="btn-lvl" style="background:var(--secondary); box-shadow: 0 8px 0 #0284c7;" onclick="jogar(20)">🚀 NÍVEL 1 (20 Qs)</button>
-        <button class="btn-lvl" style="background:var(--primary); box-shadow: 0 8px 0 #4338ca;" onclick="jogar(30)">🚁 NÍVEL 2 (30 Qs)</button>
-        <button class="btn-lvl" style="background:#8b5cf6; box-shadow: 0 8px 0 #6d28d9;" onclick="jogar(50)">👑 NÍVEL 3 (50 Qs)</button>
-    </div>
-
-    <div id="game">
-        <div class="xp-container"><div id="pb" class="xp-fill"></div></div>
-        <div id="q-txt" style="font-size: 22px; font-weight: 800; color:#1e293b; text-align: left; margin-bottom: 25px; line-height: 1.3; min-height: 60px;"></div>
-        <div id="opts"></div>
-    </div>
-
-    <div id="result">
-        <div id="medal" style="font-size: 110px; margin-bottom: 10px;"></div>
-        <h1 id="rank-name"></h1>
-        <p id="res-score" style="font-size: 24px; font-weight: 800; color: #475569;"></p>
-        <button class="btn-lvl" style="background:var(--secondary); box-shadow: 0 8px 0 #0284c7; margin-top: 25px;" onclick="location.reload()">JOGAR NOVAMENTE</button>
-    </div>
-
-</div>
-
-<script>
-    const URL_LOG = "https://script.google.com/macros/s/AKfycbwCtokjD5Uw6weMAjlp2iQhsXpfi9lpCTvvAp8yTRan35-SskKIrxGfh1So617-8FEq/exec";
-
-    const bancoBase = [
-        { q: "Por que as casas ribeirinhas são palafitas?", o: ["Pela beleza das estacas", "Para evitar inundações nas cheias", "Para ventilar melhor"], a: 1 },
-        { q: "Onde se localiza a aldeia Ipavu (povo Kamayurá)?", o: ["No Litoral Baiano", "No Parque do Xingu (MT)", "Na Floresta Amazônica"], a: 1 },
-        { q: "Material tradicional das ocas indígenas?", o: ["Tijolo e telha", "Barro, palha e madeira", "Pedra e cimento"], a: 1 },
-        { q: "O que define um Quilombo historicamente?", o: ["Uma feira de trocas", "Um lugar de resistência e liberdade", "Uma fazenda de café"], a: 1 },
-        { q: "Qual o transporte principal dos ribeirinhos?", o: ["Carros e motos", "Barcos e canoas", "Trens de carga"], a: 1 },
-        { q: "Como o saber é passado nos quilombos?", o: ["Por livros didáticos", "Pelas histórias dos mais velhos", "Pela internet"], a: 1 },
-        { q: "Cuidar da natureza para esses povos é...", o: ["Um passatempo", "Necessário para a sobrevivência", "Uma obrigação do governo"], a: 1 },
-        { q: "A escola na floresta ensina sobre...", o: ["Apenas prédios das cidades", "A fauna, flora e cultura local", "Como morar em Marte"], a: 1 },
-        { q: "Ribeirinhos vivem perto de qual recurso?", o: ["Das Montanhas", "Dos Rios", "Dos Desertos"], a: 1 },
-        { q: "O que é tradição oral?", o: ["Leitura de livros", "Passar cultura através da fala", "Aprender a cantar"], a: 1 }
-    ];
-
-    let quiz = [], etapa = 0, score = 0, travado = false;
-    const card = document.getElementById('main-card');
-
-    function jogar(n) {
-        new Image().src = `${URL_LOG}?ip=Aluno_Nivel_${n}_${Date.now()}`;
-        document.getElementById('start').style.display = 'none';
-        document.getElementById('game').style.display = 'block';
-
-        let pool = [];
-        while(pool.length < 100) { bancoBase.forEach(x => pool.push({...x})); }
-        quiz = pool.sort(() => Math.random() - 0.5).slice(0, n);
-        mostrar();
-    }
-
-    function mostrar() {
-        travado = false;
-        card.className = "card"; // Reseta classes do card
-        const q = quiz[etapa];
-        document.getElementById('pb').style.width = (etapa/quiz.length*100) + "%";
-        document.getElementById('q-txt').innerText = `Questão ${etapa+1}: ${q.q}`;
-        
-        const box = document.getElementById('opts');
-        box.innerHTML = '';
-
-        q.o.forEach((txt, i) => {
-            const b = document.createElement('button');
-            b.className = 'opt';
-            b.innerText = txt;
-            b.onclick = () => {
-                if(travado) return;
-                travado = true;
-                if(i === q.a) {
-                    b.classList.add('acerto');
-                    score++;
-                    createConfetti(); // Chuva de confetes
-                } else {
-                    b.classList.add('erro');
-                    triggerExplosion(); // Explosão no card
-                }
-                setTimeout(() => {
-                    etapa++;
-                    if(etapa < quiz.length) mostrar();
-                    else finalizar();
-                }, 800);
-            };
-            box.appendChild(b);
-        });
-    }
-
-    // --- SISTEMA DE CONFETES NATIVOS (JS Puro) ---
-    function createConfetti() {
-        for(let i=0; i<40; i++) {
-            const c = document.createElement('div');
-            c.className = 'confetti';
-            // Posição aleatória atrás do card
-            c.style.left = Math.random() * 100 + 'vw';
-            c.style.top = Math.random() * -20 + 'vh'; // Começa acima da tela
-            // Cores aleatórias da paleta gamificada
-            c.style.backgroundColor = ['#0ea5e9','#22c55e','#fbbf24','#6366f1'][Math.floor(Math.random()*4)];
-            // Tamanhos aleatórios
-            const size = Math.random() * 8 + 5 + 'px';
-            c.style.width = size; c.style.height = size;
-            document.body.appendChild(c);
-            // Remove após a animação
-            setTimeout(() => c.remove(), 3000);
-        }
-    }
-
-    // --- SISTEMA DE EXPLOSÃO VISUAL NO CARD ---
-    function triggerExplosion() {
-        // Adiciona classes que fazem o card tremer e piscar
-        card.classList.add('card-explosion');
-        // Remove as classes após a animação para poder repetir
-        setTimeout(() => {
-            card.classList.remove('card-explosion');
-        }, 500);
-    }
-
-    function finalizar() {
-        document.getElementById('game').style.display = 'none';
-        document.getElementById('result').style.display = 'block';
-        
-        let pct = (score / quiz.length) * 100;
-        let medalha = "🥉"; let rank = "BRONZE";
-        if(pct >= 90) { medalha = "🥇"; rank = "OURO"; }
-        else if(pct >= 60) { medalha = "🥈"; rank = "PRATA"; }
-
-        document.getElementById('medal').innerText = medalha;
-        document.getElementById('rank-name').innerText = "NÍVEL " + rank;
-        document.getElementById('res-score').innerText = `Você acertou ${score} de ${quiz.length}!`;
     }
 </script>
 </body>

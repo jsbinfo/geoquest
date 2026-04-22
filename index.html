@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoQuest 100 - Edição Especial</title>
+    <title>GeoQuest 100 - National Edition</title>
     <style>
         :root { 
             --geo-blue: #1e40af; --geo-green: #15803d; --geo-sand: #fefce8; 
@@ -12,45 +12,83 @@
         
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: radial-gradient(circle, #0c4a6e, #082f49);
+            background: #0c4a6e; /* Fundo Oceano Profundo */
             display: flex; justify-content: center; align-items: center; 
             min-height: 100vh; margin: 0; overflow: hidden;
-            color: var(--text);
+            color: var(--text); position: relative;
         }
 
+        /* --- GLOBO TERRESTRE GIRANTE NO FUNDO (CSS PURO) --- */
+        .globe-bg {
+            position: absolute; width: 600px; height: 600px;
+            background: #0ea5e9; /* Cor da Água */
+            border-radius: 50%;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5), 0 0 20px rgba(14, 165, 233, 0.5);
+            opacity: 0.3; z-index: 1;
+            overflow: hidden; animation: rotateGlobe 20s linear infinite;
+        }
+        /* Mapa sutil dentro do globo (linhas de latitude/longitude) */
+        .globe-bg::before {
+            content: ''; position: absolute; top:0; left:0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        @keyframes rotateGlobe { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Container estilo Atlas */
         .atlas-card { 
             background: var(--geo-sand); 
-            border-radius: 15px; padding: 40px; width: 90%; max-width: 500px; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            border: 4px solid #d4d4d8; position: relative;
-            background-image: url('https://www.transparenttextures.com/patterns/parchment.png');
+            border-radius: 15px; padding: 40px; 
+            width: 90%; max-width: 500px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border: 4px solid #d4d4d8;
+            position: relative; z-index: 10;
+            background-image: url('https://www.transparenttextures.com/patterns/parchment.png'); /* Efeito papel antigo */
         }
 
-        .header { border-bottom: 3px double var(--geo-blue); margin-bottom: 25px; padding-bottom: 10px; }
+        /* Cabeçalho do Quiz */
+        .header { 
+            border-bottom: 3px double var(--geo-blue);
+            margin-bottom: 25px; padding-bottom: 10px;
+        }
+
         h1 { margin: 0; font-size: 28px; color: var(--geo-blue); text-transform: uppercase; letter-spacing: 2px; }
 
+        /* Botões de Seleção de Nível (Estilo Navegação) */
         .btn-geo { 
-            background: var(--geo-blue); color: white; border: none; padding: 18px; border-radius: 8px; width: 100%; 
-            font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; transition: 0.2s;
-            border-bottom: 4px solid #172554; display: block;
+            background: var(--geo-blue); color: white; border: none; 
+            padding: 18px; border-radius: 8px; width: 100%; 
+            font-size: 16px; font-weight: bold; cursor: pointer; 
+            margin-bottom: 12px; transition: 0.2s;
+            border-bottom: 4px solid #172554;
         }
-        .btn-geo:hover { background: var(--ocean); transform: scale(1.02); }
+        .btn-geo:hover { background: var(--ocean); transform: scale(1.03); }
 
+        /* Alternativas (Estilo Legenda de Mapa) */
         .opt-geo { 
-            background: white; border: 2px solid #cbd5e1; border-radius: 8px; padding: 15px; 
-            margin-bottom: 10px; width: 100%; text-align: left; cursor: pointer; 
+            background: white; border: 2px solid #cbd5e1; 
+            border-radius: 8px; padding: 15px; margin-bottom: 10px; 
+            width: 100%; text-align: left; cursor: pointer; 
             font-weight: 600; font-size: 16px; transition: 0.2s;
         }
-        .opt-geo:hover { background: #e0f2fe; border-color: var(--ocean); padding-left: 25px; }
+        .opt-geo:hover { 
+            background: #e0f2fe; border-color: var(--ocean); 
+            padding-left: 25px; /* Efeito de seleção */
+        }
 
         .anim-acerto { background: #bcfab0 !important; border-color: var(--geo-green) !important; color: #064e3b; }
         .anim-erro { animation: shake 0.4s; background: #fecaca !important; border-color: #991b1b !important; }
         
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
         #game, #result { display: none; }
     </style>
 </head>
 <body onclick="initAudio()">
+
+    <div class="globe-bg"></div>
 
 <div class="atlas-card">
     <div id="start">
@@ -58,10 +96,12 @@
             <h1>🌎 GeoQuest 100</h1>
             <p style="font-style: italic; margin-top: 5px;">Exploração Geográfica Brasileira</p>
         </div>
+        <p style="font-weight: 600; margin-bottom: 5px;">Primeiro, clique na tela para ativar o som.</p>
         <p style="font-weight: 600;">Selecione o tamanho da expedição:</p>
-        <button class="btn-geo" onmouseenter="playSound('flick')" onclick="jogar(20)">📍 20 QUESTÕES</button>
-        <button class="btn-geo" onmouseenter="playSound('flick')" onclick="jogar(30)">🚢 30 QUESTÕES</button>
-        <button class="btn-geo" onmouseenter="playSound('flick')" onclick="jogar(50)">🔭 50 QUESTÕES</button>
+        
+        <button class="btn-geo" onmouseenter="playFlickSound()" onclick="jogar(20)">📍 EXPEDIÇÃO 20 QUESTÕES</button>
+        <button class="btn-geo" onmouseenter="playFlickSound()" onclick="jogar(30)">🚢 EXPEDIÇÃO 30 QUESTÕES</button>
+        <button class="btn-geo" onmouseenter="playFlickSound()" onclick="jogar(50)">🔭 EXPEDIÇÃO 50 QUESTÕES</button>
     </div>
 
     <div id="game">
@@ -71,93 +111,68 @@
     </div>
 
     <div id="result">
-        <h1 id="res-rank">CONCLUÍDO</h1>
+        <h1 id="res-rank">EXPEDIÇÃO CONCLUÍDA</h1>
         <p id="res-score" style="font-size: 20px; font-weight: bold; margin: 20px 0;"></p>
-        <button class="btn-geo" onmouseenter="playSound('flick')" onclick="location.reload()">REINICIAR</button>
+        <button class="btn-geo" onmouseenter="playFlickSound()" onclick="location.reload()">REINICIAR MAPA</button>
     </div>
 </div>
 
 <script>
     let audioCtx;
     
+    // Inicia o contexto de áudio
     function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    function playSound(type) {
+    // SOM DE FLICK (Páginas/Mapas) - SINTETIZADO (Garante que toque)
+    function playFlickSound() {
         if (!audioCtx) return;
         const now = audioCtx.currentTime;
+        const bufferSize = audioCtx.sampleRate * 0.05;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        // Gera ruído branco
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
 
-        if (type === 'flick') {
-            const bufferSize = audioCtx.sampleRate * 0.05;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'highpass'; filter.frequency.setValueAtTime(3000, now);
-            const g = audioCtx.createGain();
-            g.gain.setValueAtTime(0.05, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-            noise.connect(filter); filter.connect(g); g.connect(audioCtx.destination);
-            noise.start();
-        } 
-        else if (type === 'acerto') {
-            // Simulação de PALMAS (Ruído branco pulsado)
-            for(let i=0; i<8; i++) {
-                setTimeout(() => {
-                    const noise = audioCtx.createBufferSource();
-                    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.2, audioCtx.sampleRate);
-                    const d = buf.getChannelData(0);
-                    for (let j = 0; j < d.length; j++) d[j] = Math.random() * 2 - 1;
-                    noise.buffer = buf;
-                    const f = audioCtx.createBiquadFilter();
-                    f.type = 'bandpass'; f.frequency.setValueAtTime(1200 + (Math.random()*400), audioCtx.currentTime);
-                    const g = audioCtx.createGain();
-                    g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-                    noise.connect(f); f.connect(g); g.connect(audioCtx.destination);
-                    noise.start();
-                }, i * 40);
-            }
-        }
-        else if (type === 'erro') {
-            // Som de "AHHH" (Onda dente de serra modulada)
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(220, now); 
-            osc.frequency.exponentialRampToValueAtTime(110, now + 0.5); // Cai o tom (tristeza)
-            
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(800, now);
-
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.6);
-            
-            osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(now + 0.6);
-        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        // Filtro highpass para dar som seco de papel
+        filter.type = 'highpass'; filter.frequency.setValueAtTime(3200, now);
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.06, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        
+        noise.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination);
+        noise.start();
     }
 
     const bancoBase = [
-        { q: "O que caracteriza o conceito de 'Território Ancestral'?", o: ["Áreas destinadas à urbanização", "Espaço de herança cultural e histórica de um povo", "Terras para exploração mineral"], a: 1 },
-        { q: "Por que as comunidades ribeirinhas constroem palafitas?", o: ["Estilo visual", "Adaptação às cheias sazonais dos rios", "Proteção contra o calor"], a: 1 },
-        { q: "A Aldeia Ipavu (Xingu) é do povo?", o: ["Kamayurá", "Guarani", "Yanomami"], a: 0 },
-        { q: "Quilombo simboliza o quê?", o: ["Comércio antigo", "Resistência e liberdade negra", "Fazenda real"], a: 1 },
-        { q: "Transporte comum entre ribeirinhos?", o: ["Trem", "Canoa ou Voadeira", "Ônibus"], a: 1 }
+        { q: "O que caracteriza o conceito de 'Território Ancestral'?", o: ["Áreas urbanizadas recently", "Espaço de herança cultural e histórica de um povo", "Terras para exploração mineral"], a: 1 },
+        { q: "Por que as comunidades ribeirinhas constroem palafitas?", o: ["Estilo visual europeu", "Adaptação às cheias sazonais dos rios", "Proteção contra o calor do solo"], a: 1 },
+        { q: "A Aldeia Ipavu situa-se em qual região preservada?", o: ["Parque Indígena do Xingu", "Reserva da Biosfera da Mata Atlântica", "Pantanal Matogrossense"], a: 0 },
+        { q: "Qual a importância histórica dos Quilombos no Brasil?", o: ["Centros de produção industrial", "Símbolos de resistência e liberdade africana", "Postos de fronteira militar"], a: 1 },
+        { q: "O termo 'Voadeira' refere-se a qual elemento geográfico?", o: ["Uma espécie de ave amazônica", "Embarcação motorizada típica de rios", "Um tipo de vento do sertão"], a: 1 },
+        { q: "A preservação da 'Tradição Oral' é vital para:", o: ["O desenvolvimento de softwares", "A manutenção da história e cultura ancestral", "O registro de patentes comerciais"], a: 1 },
+        { q: "Qual o bioma predominante nas terras dos Kamayurá?", o: ["Pampas", "Floresta Amazônica/Cerrado", "Caatinga"], a: 1 },
+        { q: "O extrativismo sustentável é uma prática comum de:", o: ["Grandes mineradoras", "Comunidades ribeirinhas e indígenas", "Siderúrgicas"], a: 1 },
+        { q: "O que define uma Oca tradicional?", o: ["Habitação coletiva indígena de materiais naturais", "Construção de pedra para defesa", "Apartamento moderno"], a: 0 },
+        { q: "Os rios são chamados de 'ruas' para qual grupo?", o: ["População urbana de SP", "Comunidades ribeirinhas", "Trabalhadores ferroviários"], a: 1 }
     ];
 
     let quiz = [], cur = 0, score = 0, busy = false;
 
     function jogar(n) {
-        initAudio();
+        initAudio(); // Ativa o som no clique do aluno
         document.getElementById('start').style.display = 'none';
         document.getElementById('game').style.display = 'block';
-        let b100 = [];
+        
+        // Simular o banco de 100
+        let banco100 = [];
         while(b100.length < 100) { bancoBase.forEach(i => { if(b100.length < 100) b100.push({...i}); }); }
+        
         quiz = b100.sort(() => Math.random() - 0.5).slice(0, n);
         render();
     }
@@ -165,7 +180,7 @@
     function render() {
         busy = false;
         const q = quiz[cur];
-        document.getElementById('progress').innerText = `QUESTÃO ${cur+1} DE ${quiz.length}`;
+        document.getElementById('progress').innerText = `ETAPA ${cur+1} DE ${quiz.length}`;
         document.getElementById('q-txt').innerText = q.q;
         const box = document.getElementById('opts');
         box.innerHTML = '';
@@ -174,23 +189,22 @@
             const b = document.createElement('button');
             b.className = 'opt-geo';
             b.innerText = txt;
-            b.onmouseenter = () => playSound('flick');
+            b.onmouseenter = () => playFlickSound();
             b.onclick = () => {
                 if(busy) return;
                 busy = true;
+                playFlickSound();
                 if(i === q.a) {
-                    playSound('acerto');
                     b.classList.add('anim-acerto');
                     score++;
                 } else {
-                    playSound('erro');
                     b.classList.add('anim-erro');
                 }
                 setTimeout(() => {
                     cur++;
                     if(cur < quiz.length) render();
                     else finalizar();
-                }, 800);
+                }, 700);
             };
             box.appendChild(b);
         });
@@ -199,7 +213,9 @@
     function finalizar() {
         document.getElementById('game').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('res-score').innerText = `Expedição Finalizada: ${score} de ${quiz.length}`;
+        let feedback = score >= (quiz.length*0.8) ? "EXCELENTE EXPLORADOR! 🏆" : "BOM TRABALHO NA ROTA! 🗺️";
+        document.getElementById('res-rank').innerText = feedback;
+        document.getElementById('res-score').innerText = `Precisão da Expedição: ${score} de ${quiz.length}`;
     }
 </script>
 </body>

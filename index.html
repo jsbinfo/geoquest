@@ -3,357 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoQuest 100 - Deck Master</title>
+    <title>GeoQuest - Card Audio Edition</title>
     <style>
         :root { --primary: #6366f1; --secondary: #0ea5e9; --success: #22c55e; --danger: #ef4444; }
         body { font-family: 'Segoe UI', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; }
 
-        /* Estilo do Deck (Card Principal) */
         .card { 
-            background: white; 
-            border-radius: 25px; 
-            padding: 40px; 
-            width: 90%; 
-            max-width: 420px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-            text-align: center; 
-            border: 12px solid #fff;
-            outline: 2px solid #e2e8f0;
-            position: relative; 
-            z-index: 10; 
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white; border-radius: 25px; padding: 40px; width: 90%; max-width: 420px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; border: 10px solid #fff;
+            position: relative; z-index: 10; transition: 0.3s;
         }
 
-        /* Enfeite de Carta de Baralho nos cantos */
-        .card::before, .card::after { content: '♠'; position: absolute; font-size: 24px; color: #cbd5e1; top: 10px; left: 15px; }
-        .card::after { content: '♥'; left: auto; right: 15px; color: #f87171; }
-
-        .btn { color: white; border: none; padding: 20px; border-radius: 15px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; margin-bottom: 15px; transition: 0.2s; box-shadow: 0 6px 0 #333; display: block; }
+        .btn { 
+            color: white; border: none; padding: 20px; border-radius: 15px; width: 100%; 
+            font-size: 18px; font-weight: 800; cursor: pointer; margin-bottom: 15px; 
+            transition: 0.2s; box-shadow: 0 6px 0 #333; display: block; 
+        }
         .btn:hover { transform: translateY(-5px); filter: brightness(1.1); }
-        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #333; }
 
-        /* Botões de Opção como Cartas menores */
         .opt { 
-            background: #fff; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 15px; 
-            padding: 18px; 
-            margin-bottom: 12px; 
-            width: 100%; 
-            text-align: left; 
-            cursor: pointer; 
-            font-weight: 700; 
-            font-size: 16px; 
-            color: #475569; 
-            transition: 0.2s; 
-            box-shadow: 0 4px 0 #f1f5f9; 
-            display: block; 
+            background: #fff; border: 2px solid #e2e8f0; border-radius: 15px; padding: 18px; 
+            margin-bottom: 12px; width: 100%; text-align: left; cursor: pointer; 
+            font-weight: 700; font-size: 16px; color: #475569; transition: 0.2s; 
+            box-shadow: 0 4px 0 #f1f5f9; display: block; 
         }
-        .opt:hover { 
-            transform: translateY(-8px) rotate(-1deg); 
-            border-color: var(--secondary); 
-            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
-            background: #f8fafc;
-        }
+        .opt:hover { transform: translateY(-5px) rotate(-1deg); border-color: var(--secondary); background: #f8fafc; }
 
-        /* Animações de Gameficação */
-        .anim-acerto { animation: win 0.5s ease-out; background: #dcfce7 !important; border-color: var(--success) !important; }
+        #game, #result { display: none; }
+        .anim-acerto { background: #dcfce7 !important; border-color: var(--success) !important; }
         .anim-erro { animation: shake 0.4s; background: #fee2e2 !important; border-color: var(--danger) !important; }
-        
-        @keyframes win { 0% { transform: scale(1); } 50% { transform: scale(1.08) rotate(2deg); } 100% { transform: scale(1); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px) rotate(-2deg); } 75% { transform: translateX(15px) rotate(2deg); } }
-
-        #flash { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 100; background: rgba(239, 68, 68, 0); transition: 0.2s; }
-        .flash-red { background: rgba(239, 68, 68, 0.4) !important; }
-
-        #game, #result { display: none; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
     </style>
 </head>
 <body>
-
-<div id="flash"></div>
-
-<div class="card" id="box" onmousedown="initAudio()">
-    <div id="start">
-        <div style="font-size: 50px; margin-bottom: 10px;">🃏</div>
-        <h1 style="margin: 0 0 20px 0; color: #1e293b; text-transform: uppercase; letter-spacing: -1px;">GeoQuest Deck</h1>
-        <p style="color: #64748b; margin-bottom: 25px;">Selecione o tamanho do seu deck:</p>
-        <button class="btn" style="background:var(--secondary);" onmouseenter="playCardSound('hover')" onclick="jogar(20)">🚀 20 CARTAS</button>
-        <button class="btn" style="background:var(--primary);" onmouseenter="playCardSound('hover')" onclick="jogar(30)">🚁 30 CARTAS</button>
-        <button class="btn" style="background:#8b5cf6;" onmouseenter="playCardSound('hover')" onclick="jogar(50)">👑 50 CARTAS</button>
-    </div>
-
-    <div id="game">
-        <div id="q-txt" style="font-size: 18px; font-weight: 800; text-align: left; margin-bottom: 20px; color: #334155;"></div>
-        <div id="opts"></div>
-    </div>
-
-    <div id="result">
-        <h1 id="res-rank" style="color: var(--primary);"></h1>
-        <p id="res-score" style="font-size: 20px; font-weight: 700; color: #64748b;"></p>
-        <button class="btn" style="background:var(--secondary);" onmouseenter="playCardSound('hover')" onclick="location.reload()">REEMBARALHAR</button>
-    </div>
-</div>
-
-<script>
-    let audioCtx;
-    
-    function initAudio() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
-    function playCardSound(type) {
-        if (!audioCtx) return;
-        const now = audioCtx.currentTime;
-        
-        if (type === 'hover') {
-            // Som de "Flick" (carta deslizando)
-            const bufferSize = audioCtx.sampleRate * 0.1;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'highpass'; filter.frequency.setValueAtTime(3000, now);
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0.06, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-            noise.start();
-        } 
-        else if (type === 'shuffle') {
-            for(let i=0; i<12; i++) { setTimeout(() => playCardSound('hover'), i * 30); }
-        }
-        else if (type === 'acerto') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
-            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-            gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(now + 0.3);
-        }
-        else if (type === 'erro') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now);
-            osc.frequency.linearRampToValueAtTime(40, now + 0.4);
-            gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.5);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(now + 0.5);
-        }
-    }
-
-    const bancoBase = [
-        { q: "O que é um 'Território Ancestral'?", o: ["Terra para agricultura industrial", "Espaço de herança cultural e histórica", "Loteamento urbano recente"], a: 1 },
-        { q: "Por que ribeirinhos usam palafitas?", o: ["Gosto pessoal", "Proteção contra as cheias dos rios", "Fugir de animais terrestres"], a: 1 },
-        { q: "A Aldeia Ipavu é o centro de qual povo?", o: ["Kamayurá", "Kayapó", "Tupi"], a: 0 },
-        { q: "O Quilombo representa acima de tudo:", o: ["Uma feira livre", "Resistência e liberdade", "Uma antiga prisão"], a: 1 },
-        { q: "O transporte 'Voadeira' é comum entre:", o: ["Moradores de prédios", "Comunidades ribeirinhas", "Caminhoneiros"], a: 1 }
-    ];
-
-    let banco100 = [];
-    while(banco100.length < 100) { bancoBase.forEach(i => { if(banco100.length < 100) banco100.push({...i}); }); }
-
-    let quiz = [], cur = 0, score = 0, busy = false;
-
-    function jogar(n) {
-        initAudio();
-        playCardSound('shuffle');
-        document.getElementById('start').style.display = 'none';
-        document.getElementById('game').style.display = 'block';
-        quiz = banco100.sort(() => Math.random() - 0.5).slice(0, n);
-        render();
-    }
-
-    function render() {
-        busy = false;
-        const q = quiz[cur];
-        document.getElementById('q-txt').innerText = `CARTA ${cur+1} de ${quiz.length}: ${q.q}`;
-        const box = document.getElementById('opts');
-        box.innerHTML = '';
-
-        q.o.forEach((txt, i) => {
-            const b = document.createElement('button');
-            b.className = 'opt';
-            b.innerText = txt;
-            b.onmouseenter = () => playCardSound('hover');
-            b.onclick = () => {
-                if(busy) return;
-                busy = true;
-                if(i === q.a) {
-                    playCardSound('acerto');
-                    b.classList.add('anim-acerto');
-                    score++;
-                } else {
-                    playCardSound('erro');
-                    b.classList.add('anim-erro');
-                    document.getElementById('flash').classList.add('flash-red');
-                }
-                setTimeout(() => {
-                    document.getElementById('flash').classList.remove('flash-red');
-                    cur++;
-                    if(cur < quiz.length) render();
-                    else finalizar();
-                }, 700);
-            };
-            box.appendChild(b);
-        });
-    }
-
-    function finalizar() {
-        document.getElementById('game').style.display = 'none';
-        document.getElementById('result').style.display = 'block';
-        document.getElementById('res-rank').innerText = score >= (quiz.length*0.7) ? "ÁS DA GEOGRAFIA! 🃏" : "BOM JOGO! 🥉";
-        document.getElementById('res-score').innerText = `Acertos: ${score} de ${quiz.length}`;
-    }
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoQuest 100 - Full Deck</title>
-    <style>
-        :root { --primary: #6366f1; --secondary: #0ea5e9; --success: #22c55e; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; }
-
-        #flash { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 100; opacity: 0; }
-        .card { background: white; border-radius: 40px; padding: 40px; width: 90%; max-width: 450px; box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; border: 8px solid #e2e8f0; position: relative; z-index: 10; transition: 0.3s; }
-
-        .btn { color: white; border: none; padding: 20px; border-radius: 20px; width: 100%; font-size: 18px; font-weight: 800; cursor: pointer; margin-bottom: 15px; transition: 0.1s; box-shadow: 0 8px 0 #333; display: block; }
-        .btn:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 11px 0 #333; }
-        .btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #333; }
-
-        .opt { background: #fff; border: 3px solid #f1f5f9; border-radius: 20px; padding: 18px; margin-bottom: 12px; width: 100%; text-align: left; cursor: pointer; font-weight: 700; font-size: 16px; color: #475569; transition: 0.2s; box-shadow: 0 5px 0 #f1f5f9; display: block; }
-        .opt:hover { transform: translateY(-5px) rotate(1deg); border-color: var(--secondary); background: #f8fafc; box-shadow: 0 10px 0 #e2e8f0; }
-
-        .anim-acerto { animation: successParty 0.5s ease-out; background: #dcfce7 !important; border-color: var(--success) !important; }
-        .anim-erro { animation: explosionShake 0.4s; background: #fee2e2 !important; border-color: var(--danger) !important; }
-        .flash-red { background: rgba(239, 68, 68, 0.6); animation: flashEffect 0.3s; opacity: 1 !important; }
-
-        @keyframes successParty { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        @keyframes explosionShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-15px); } 80% { transform: translateX(10px); } }
-        @keyframes flashEffect { from { opacity: 0; } to { opacity: 1; } }
-
-        #game, #result { display: none; }
-    </style>
-</head>
-<body>
-
-<div id="flash"></div>
 
 <div class="card" id="box">
     <div id="start">
-        <div style="font-size: 60px;">🃏</div>
-        <h1>GeoQuest 100</h1>
-        <p style="color: #64748b; margin-bottom: 25px; font-weight: 600;">Desafio de Geografia: 100 Questões!</p>
-        <button class="btn" style="background:var(--secondary);" onclick="jogar(20)">🚀 20 CARTAS</button>
-        <button class="btn" style="background:var(--primary);" onclick="jogar(30)">🚁 30 CARTAS</button>
-        <button class="btn" style="background:#8b5cf6;" onclick="jogar(50)">👑 50 CARTAS</button>
+        <div style="font-size: 50px; margin-bottom: 10px;">🃏</div>
+        <h1 style="color: #1e293b;">GeoQuest</h1>
+        <p style="color: #64748b; margin-bottom: 25px;">Escolha o tamanho do deck:</p>
+        <button class="btn" style="background:var(--secondary);" onmouseenter="playCardFlick()" onclick="jogar(20)">🚀 20 CARTAS</button>
+        <button class="btn" style="background:var(--primary);" onmouseenter="playCardFlick()" onclick="jogar(30)">🚁 30 CARTAS</button>
+        <button class="btn" style="background:#8b5cf6;" onmouseenter="playCardFlick()" onclick="jogar(50)">👑 50 CARTAS</button>
     </div>
 
     <div id="game">
-        <div id="q-txt" style="font-size: 19px; font-weight: 800; text-align: left; margin-bottom: 20px; line-height: 1.4;"></div>
+        <div id="q-txt" style="font-size: 18px; font-weight: 800; text-align: left; margin-bottom: 20px;"></div>
         <div id="opts"></div>
     </div>
 
     <div id="result">
         <h1 id="res-rank"></h1>
-        <p id="res-score" style="font-size: 20px; font-weight: 700; color: #64748b;"></p>
-        <button class="btn" style="background:var(--secondary);" onclick="location.reload()">NOVO DECK</button>
+        <p id="res-score" style="font-size: 18px; font-weight: 700;"></p>
+        <button class="btn" style="background:var(--secondary);" onmouseenter="playCardFlick()" onclick="location.reload()">NOVO DECK</button>
     </div>
 </div>
 
 <script>
     let audioCtx;
     
+    // Inicia o áudio no primeiro clique do usuário (exigência do navegador)
     function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    function playCardSound(type) {
+    // SOM DE CARTA (FLICK) - Gerado sinteticamente
+    function playCardFlick() {
         if (!audioCtx) return;
         const now = audioCtx.currentTime;
         
-        if (type === 'hover') {
-            const bufferSize = audioCtx.sampleRate * 0.1;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'highpass';
-            filter.frequency.setValueAtTime(2500, now);
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-            noise.start(now);
-        } 
-        else if (type === 'shuffle') {
-            for(let i=0; i<8; i++) { setTimeout(() => playCardSound('hover'), i * 40); }
-        }
-        else if (type === 'acerto') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523, now); 
-            osc.frequency.exponentialRampToValueAtTime(1046, now + 0.2);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.4);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(now + 0.4);
-        }
-        else if (type === 'erro') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(100, now);
-            osc.frequency.linearRampToValueAtTime(30, now + 0.4);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.5);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(now + 0.5);
+        // Criar ruído branco curto para simular o atrito do papel/plástico
+        const bufferSize = audioCtx.sampleRate * 0.05; 
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        // Filtro passa-alta para deixar o som "seco" como papel
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(3200, now);
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.08, now); // Volume baixo para ser elegante
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start(now);
+    }
+
+    function playShuffle() {
+        for(let i=0; i<10; i++) {
+            setTimeout(() => playCardFlick(), i * 40);
         }
     }
 
-    // BANCO DE 100 QUESTÕES (Simulado com as variações para Geopolítica/Cultura)
-    const bancoOriginal = [
-        { q: "Por que as casas ribeirinhas são palafitas?", o: ["Estilo arquitetônico", "Para evitar inundações nas cheias", "Para manter longe do calor"], a: 1 },
-        { q: "Onde se localiza a Aldeia Ipavu (Kamayurá)?", o: ["Litoral da Bahia", "Parque do Xingu (MT)", "Centro de Manaus"], a: 1 },
-        { q: "Material usado nas ocas tradicionais?", o: ["Pedra e cal", "Madeira, palha e cipó", "Tijolo ecológico"], a: 1 },
-        { q: "O que é historicamente um Quilombo?", o: ["Um mercado de escravos", "Comunidade de resistência e liberdade", "Uma fazenda de café"], a: 1 },
-        { q: "Principal transporte das comunidades ribeirinhas?", o: ["Caminhão", "Barcos e canoas", "Trem"], a: 1 },
-        { q: "Como os quilombolas preservam sua história?", o: ["Por e-mails", "Pela tradição oral (fala)", "Por jornais"], a: 1 },
-        { q: "Qual a função da floresta para os indígenas?", o: ["Lugar de passeio", "Fonte de vida, alimento e cultura", "Apenas reserva de madeira"], a: 1 },
-        { q: "As festas quilombolas celebram principalmente...", o: ["A cultura europeia", "A ancestralidade africana e resistência", "O cinema moderno"], a: 1 },
-        { q: "Ribeirinhos vivem de acordo com o ciclo de quê?", o: ["Das estações de trem", "Das cheias e secas dos rios", "Do calendário escolar"], a: 1 },
-        { q: "O que significa 'Território Ancestral'?", o: ["Terra comprada recentemente", "Terra ligada à história dos antepassados", "Terra para construção de shoppings"], a: 1 }
+    const bancoBase = [
+        { q: "O que é um 'Território Ancestral'?", o: ["Terra para lucro", "Espaço de herança histórica e cultural", "Loteamento novo"], a: 1 },
+        { q: "Casas ribeirinhas são palafitas para?", o: ["Decoração", "Proteção contra cheias dos rios", "Gastar menos madeira"], a: 1 },
+        { q: "A Aldeia Ipavu (Xingu) é do povo?", o: ["Kamayurá", "Bororo", "Tupinambá"], a: 0 },
+        { q: "Quilombo simboliza o quê?", o: ["Comércio", "Resistência e liberdade", "Prisão"], a: 1 },
+        { q: "Como ribeirinhos viajam no rio?", o: ["Caminhão", "Canoa ou Voadeira", "Jet-ski"], a: 1 }
     ];
-
-    // Função para inflar o banco para 100 variações (embaralhando termos)
-    let banco100 = [];
-    while(banco100.length < 100) {
-        bancoOriginal.forEach(item => {
-            if(banco100.length < 100) banco100.push({...item});
-        });
-    }
 
     let quiz = [], cur = 0, score = 0, busy = false;
 
     function jogar(n) {
         initAudio();
-        playCardSound('shuffle');
+        playShuffle(); // Som de embaralhar ao iniciar
         document.getElementById('start').style.display = 'none';
         document.getElementById('game').style.display = 'block';
         
-        // Embaralha o deck de 100 e pega N cartas
+        // Simular banco de 100
+        let banco100 = [];
+        while(banco100.length < 100) { bancoBase.forEach(i => { if(banco100.length < 100) banco100.push({...i}); }); }
+        
         quiz = banco100.sort(() => Math.random() - 0.5).slice(0, n);
         render();
     }
@@ -361,7 +130,7 @@
     function render() {
         busy = false;
         const q = quiz[cur];
-        document.getElementById('q-txt').innerText = `CARTA ${cur+1} de ${quiz.length}: ${q.q}`;
+        document.getElementById('q-txt').innerText = `CARTA ${cur+1}: ${q.q}`;
         const box = document.getElementById('opts');
         box.innerHTML = '';
 
@@ -369,29 +138,28 @@
             const b = document.createElement('button');
             b.className = 'opt';
             b.innerText = txt;
-            b.onmouseenter = () => playCardSound('hover');
+            
+            // Som de carta ao passar o mouse nas respostas
+            b.onmouseenter = () => playCardFlick();
+
             b.onclick = () => {
                 if(busy) return;
                 busy = true;
+                // No clique também faz um som de carta sendo "jogada"
+                playCardFlick(); 
+                
                 if(i === q.a) {
-                    playCardSound('acerto');
                     b.classList.add('anim-acerto');
                     score++;
-                    document.body.style.background = "radial-gradient(circle, #22c55e, #0f172a)";
                 } else {
-                    playCardSound('erro');
                     b.classList.add('anim-erro');
-                    document.getElementById('flash').classList.add('flash-red');
-                    document.getElementById('box').classList.add('anim-erro');
                 }
+
                 setTimeout(() => {
-                    document.body.style.background = "#0f172a";
-                    document.getElementById('flash').classList.remove('flash-red');
-                    document.getElementById('box').classList.remove('anim-erro');
                     cur++;
                     if(cur < quiz.length) render();
                     else finalizar();
-                }, 700);
+                }, 600);
             };
             box.appendChild(b);
         });
@@ -400,10 +168,12 @@
     function finalizar() {
         document.getElementById('game').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        let rank = score >= (quiz.length*0.8) ? "👑 ÁS DO CONHECIMENTO!" : "🥉 BOM TRABALHO!";
-        document.getElementById('res-rank').innerText = rank;
-        document.getElementById('res-score').innerText = `Você acertou ${score} de ${quiz.length} questões.`;
+        document.getElementById('res-rank').innerText = score >= (quiz.length*0.8) ? "👑 ÁS DAS CARTAS!" : "🥉 BOM JOGO!";
+        document.getElementById('res-score').innerText = `Você acertou ${score} de ${quiz.length}`;
     }
+
+    // Garantir que o áudio ative no primeiro clique em qualquer lugar
+    document.addEventListener('click', initAudio, { once: true });
 </script>
 </body>
 </html>

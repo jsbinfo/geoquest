@@ -23,30 +23,23 @@
         }
 
         .game-card {
-            background: white;
-            border-radius: 30px;
-            padding: 30px;
-            width: 100%;
-            max-width: 550px;
+            background: white; border-radius: 30px; padding: 30px;
+            width: 100%; max-width: 550px;
             box-shadow: 0 15px 35px rgba(14, 165, 233, 0.2);
-            border: 4px solid white;
-            text-align: center;
+            border: 4px solid white; text-align: center;
             animation: slideUp 0.5s ease-out;
         }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Barra de Progresso Colorida */
         .progress-outer {
             width: 100%; background: #e2e8f0; height: 16px; border-radius: 20px;
-            margin-bottom: 25px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 25px; overflow: hidden;
         }
         .progress-inner {
             height: 100%; background: linear-gradient(90deg, #0ea5e9, #22c55e);
             width: 0%; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
-        h1 { color: var(--primary); font-size: 32px; margin: 0 0 10px; font-weight: 800; }
 
         .question-text {
             font-size: 20px; font-weight: 700; color: #334155;
@@ -54,43 +47,37 @@
             padding: 15px; border-radius: 15px; background: #f8fafc;
         }
 
-        /* Botões de Resposta "Bolha" */
         .btn-option {
             background: white; border: 2px solid #e2e8f0; border-radius: 20px;
             padding: 18px; margin-bottom: 15px; cursor: pointer; text-align: left;
             transition: all 0.2s; font-size: 17px; font-weight: 600; color: #475569;
-            box-shadow: 0 4px 0 #e2e8f0; width: 100%; box-sizing: border-box;
-            display: block;
+            box-shadow: 0 4px 0 #e2e8f0; width: 100%; display: block;
+            outline: none;
         }
         .btn-option:hover { border-color: var(--secondary); background: #f0f9ff; transform: translateY(-2px); }
         .btn-option:active { transform: translateY(2px); box-shadow: 0 0px 0 #e2e8f0; }
 
-        /* Cores de Feedback */
         .btn-correct { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; box-shadow: 0 4px 0 #16a34a !important; }
         .btn-wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; box-shadow: 0 4px 0 #dc2626 !important; }
 
-        /* Painel de Explicação Suave */
         .feedback-area {
             background: #fffbeb; border-radius: 20px; padding: 20px; margin-top: 20px;
-            border: 2px solid #fde68a; display: none; animation: popIn 0.3s ease;
+            border: 2px solid #fde68a; display: none; animation: fadeIn 0.3s ease;
         }
-        .feedback-area p { font-size: 15px; color: #92400e; line-height: 1.6; text-align: justify; margin: 10px 0; }
 
         .btn-next {
             background: var(--success); color: white; border: none; padding: 16px 40px;
             border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%;
             margin-top: 15px; font-size: 18px; box-shadow: 0 5px 0 #16a34a;
         }
-        .btn-next:active { transform: translateY(3px); box-shadow: 0 2px 0 #16a34a; }
 
-        #game-screen, #result-screen { display: none; }
-        
         .btn-start {
             background: var(--secondary); color: white; border: none; padding: 20px;
             margin: 10px 0; border-radius: 20px; width: 100%; font-size: 18px;
             font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #0284c7;
         }
-        .btn-start:hover { filter: brightness(1.05); transform: translateY(-2px); }
+
+        #game-screen, #result-screen { display: none; }
     </style>
 </head>
 <body>
@@ -106,11 +93,9 @@
 
 <div class="game-card" id="game-screen">
     <div class="progress-outer"><div id="progress-bar" class="progress-inner"></div></div>
-    <div id="q-status" style="font-size: 13px; color: var(--secondary); font-weight: 800; margin-bottom: 8px; text-align: left; text-transform: uppercase;"></div>
-    
+    <div id="q-status" style="font-size: 13px; color: var(--secondary); font-weight: 800; margin-bottom: 8px; text-align: left;"></div>
     <div class="question-text" id="q-body"></div>
     <div id="options-list"></div>
-    
     <div id="feedback-panel" class="feedback-area">
         <div id="status-label" style="font-weight: 900; font-size: 20px;"></div>
         <p id="explanation-text"></p>
@@ -126,19 +111,36 @@
 </div>
 
 <script>
+    // 1. MONITORAMENTO DE ACESSO (IP LOG)
+    async function monitorarAcesso() {
+        try {
+            const res = await fetch('https://api.ipify.org?format=json');
+            const data = await res.json();
+            
+            // --- SUBSTITUA ESTES DADOS ---
+            const FORM_ID = "COLE_AQUI_O_ID_DO_FORM";
+            const ENTRY_ID = "entry.NUMERO_AQUI";
+            
+            const url = `https://docs.google.com/forms/d/e/${FORM_ID}/formResponse?${ENTRY_ID}=${data.ip}&submit=Submit`;
+            fetch(url, { mode: 'no-cors' });
+        } catch (e) { console.log("Acesso registrado localmente."); }
+    }
+
+    // 2. BANCO DE QUESTÕES
     const db = [
-        { q: "Por que as casas ribeirinhas (palafitas) são construídas sobre estacas de madeira?", o: ["Para decoração luxuosa", "Para impedir que a água entre na casa nas cheias", "Para facilitar a ventilação"], a: 1, e: "Na época das chuvas, o nível dos rios sobe muito. As estacas elevam a casa para que a água corra por baixo do assoalho, mantendo a família e os móveis secos e seguros." },
-        { q: "Em qual parque fica a aldeia Ipavu?", o: ["Parque da Tijuca (RJ)", "Parque do Xingu (MT)", "Parque do Ibirapuera (SP)"], a: 1, e: "A aldeia Ipavu faz parte do Parque Indígena do Xingu, no Mato Grosso. É uma região protegida onde vários povos mantêm suas tradições e cuidam da natureza." },
-        { q: "De quais materiais são feitas as ocas tradicionais?", o: ["Cimento, ferro e vidro", "Barro e fibras vegetais (palha)", "Plástico e alumínio"], a: 1, e: "As ocas utilizam o que a natureza oferece. O barro para as paredes e a palha para o telhado garantem que a casa seja fresca e protegida, respeitando o meio ambiente." },
-        { q: "Qual o significado histórico dos Quilombos?", o: ["Vilas de férias antigas", "Locais de refúgio e resistência à escravidão", "Mercados de comércio de café"], a: 1, e: "Os quilombos eram espaços de liberdade. Eram formados por africanos que fugiam da escravidão para viver conforme sua cultura e plantar seu próprio alimento." },
-        { q: "O que a comunidade de Malhadinha (TO) produz?", o: ["Apenas cana para exportação", "Arroz, feijão, mandioca, abóbora e inhame", "Somente produtos industrializados"], a: 1, e: "As 97 famílias de Malhadinha plantam diversos alimentos naturais. Isso garante comida saudável para todos e mantém o solo fértil por muito tempo." },
-        { q: "Como o saber é passado nas comunidades sem internet?", o: ["Por mensagens em garrafas", "Pela oralidade (histórias contadas pelos mais velhos)", "Por manuais técnicos"], a: 1, e: "A oralidade é a tradição de ensinar falando. Os mais velhos contam histórias sobre os antepassados e o modo de cuidar da terra para os mais novos." },
-        { q: "Como os estudantes ribeirinhos chegam à escola?", o: ["Usando metrô ou trem", "Através de barcos e canoas", "Voando de helicóptero"], a: 1, e: "Nas margens dos rios, a água é a estrada principal. Barcos e canoas são os meios de transporte usados pelas crianças para estudar e pelas famílias para viajar." },
-        { q: "O que os povos tradicionais ensinam sobre a natureza?", o: ["Que devemos extrair tudo rapidamente", "Que é possível viver em harmonia e preservação", "Que a natureza não tem valor"], a: 1, e: "Essas comunidades são mestres em sustentabilidade. Elas retiram da natureza apenas o que precisam para viver, cuidando dos rios e da floresta para o futuro." },
-        { q: "O formato das ocas é sempre o mesmo em todas as aldeias?", o: ["Sim, todas são circulares", "Não, variam conforme a etnia (redondas ou quadradas)", "Sim, são sempre pequenas tendas"], a: 1, e: "O formato da oca depende da tradição de cada povo indígena. Algumas etnias constroem ocas circulares e outras preferem formatos retangulares." },
-        { q: "Qual a função das mulheres quilombolas na agricultura?", o: ["Elas não trabalham no campo", "Lideram o plantio sustentável e a guarda das sementes", "Apenas observam o trabalho"], a: 1, e: "As mulheres quilombolas têm papel central na produção de alimentos. Elas conhecem profundamente o solo e as sementes, garantindo fartura para a comunidade." }
+        { q: "Por que as casas ribeirinhas (palafitas) são construídas sobre estacas?", o: ["Para decoração", "Para evitar inundações nas cheias dos rios", "Para facilitar a ventilação"], a: 1, e: "O nível dos rios sobe muito na época das chuvas. As estacas elevam a casa para manter a família e os móveis secos." },
+        { q: "Em qual parque se localiza a aldeia Ipavu?", o: ["Parque da Tijuca (RJ)", "Parque do Xingu (MT)", "Parque do Ibirapuera (SP)"], a: 1, e: "A aldeia Ipavu fica no Mato Grosso, no Parque do Xingu, onde diversos povos protegem suas tradições." },
+        { q: "De que materiais são feitas as ocas tradicionais?", o: ["Cimento e ferro", "Barro e fibras vegetais (palha)", "Plástico e metal"], a: 1, e: "As ocas usam materiais da própria floresta. O barro e a palha garantem um ambiente fresco e sustentável." },
+        { q: "O que caracteriza os Quilombos na história?", o: ["Fazendas de produção de café", "Locais de refúgio e resistência à escravidão", "Vilas de colonos europeus"], a: 1, e: "Quilombos eram espaços de liberdade onde africanos escravizados fugiam para viver com autonomia e manter sua cultura." },
+        { q: "O que as famílias da comunidade de Malhadinha (TO) cultivam?", o: ["Apenas monocultura de soja", "Arroz, feijão, mandioca, abóbora e inhame", "Somente produtos industrializados"], a: 1, e: "Eles praticam a policultura, plantando diversos alimentos naturais para garantir saúde e fartura para a comunidade." },
+        { q: "Como o saber é passado nas comunidades tradicionais?", o: ["Exclusivamente por livros", "Através da oralidade e histórias dos mais velhos", "Pela internet"], a: 1, e: "A fala é a escola. Os anciãos (mais velhos) ensinam as tradições e técnicas de vida aos mais jovens através da conversa." },
+        { q: "Qual o principal transporte dos estudantes ribeirinhos?", o: ["Ônibus escolar", "Barcos e canoas", "Trem"], a: 1, e: "Nas margens dos grandes rios, a água é a estrada principal. Por isso, os barcos são essenciais para ir à escola." },
+        { q: "O que as comunidades tradicionais nos ensinam sobre a natureza?", o: ["Que devemos extrair tudo rapidamente", "Que é possível viver em harmonia e preservação", "Que a natureza não tem importância"], a: 1, e: "Eles mostram que podemos usar os recursos da floresta sem destruí-la, pensando no futuro das próximas gerações." },
+        { q: "O formato das ocas é sempre o mesmo em todo o Brasil?", o: ["Sim, todas são circulares", "Não, elas mudam conforme a etnia (redondas ou quadradas)", "Sim, são sempre triangulares"], a: 1, e: "O formato da oca depende da cultura de cada povo. Algumas aldeias fazem ocas circulares, outras retangulares." },
+        { q: "Qual o papel das mulheres quilombolas na agricultura?", o: ["Elas não participam do trabalho", "Lideram o plantio sustentável e a guarda das sementes", "Apenas observam o trabalho"], a: 1, e: "As mulheres são fundamentais no cuidado com a terra e na diversidade das plantações, garantindo a soberania alimentar do grupo." }
     ];
 
+    // 3. LÓGICA DO JOGO
     let gameBank = [];
     let curIdx = 0;
     let corrects = 0;
@@ -147,7 +149,6 @@
     function initGame(n) {
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'block';
-        
         let fullList = [];
         while(fullList.length < 100) { db.forEach(item => fullList.push({...item})); }
         gameBank = fullList.sort(() => Math.random() - 0.5).slice(0, n);
@@ -158,10 +159,9 @@
         isLocked = false;
         const q = gameBank[curIdx];
         document.getElementById('progress-bar').style.width = (curIdx / gameBank.length * 100) + "%";
-        document.getElementById('q-status').innerText = `DESAFIO ${curIdx + 1} DE ${gameBank.length}`;
+        document.getElementById('q-status').innerText = `QUESTÃO ${curIdx + 1} DE ${gameBank.length}`;
         document.getElementById('q-body').innerText = q.q;
         document.getElementById('feedback-panel').style.display = 'none';
-        
         const list = document.getElementById('options-list');
         list.innerHTML = '';
         q.o.forEach((txt, i) => {
@@ -176,7 +176,6 @@
     function checkQ(isOk, btn) {
         if(isLocked) return;
         isLocked = true;
-
         const label = document.getElementById('status-label');
         if(isOk) {
             btn.classList.add('btn-correct');
@@ -186,10 +185,9 @@
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         } else {
             btn.classList.add('btn-wrong');
-            label.innerText = "💡 VAMOS APRENDER MAIS:";
+            label.innerText = "💡 VEJA A EXPLICAÇÃO:";
             label.style.color = "#dc2626";
         }
-        
         document.getElementById('explanation-text').innerText = gameBank[curIdx].e;
         document.getElementById('feedback-panel').style.display = 'block';
     }
@@ -205,13 +203,14 @@
         const p = (corrects / gameBank.length) * 100;
         const title = document.getElementById('res-msg');
         const icon = document.getElementById('res-icon');
-        
-        if(p >= 80) { title.innerText = "GÊNIO DA GEOGRAFIA!"; icon.innerText = "🏆"; }
+        if(p >= 80) { title.innerText = "MESTRE DA GEOGRAFIA!"; icon.innerText = "🏆"; }
         else if(p >= 50) { title.innerText = "GRANDE EXPLORADORA!"; icon.innerText = "🚁"; }
         else { title.innerText = "BELO ESFORÇO!"; icon.innerText = "📚"; }
-        
         document.getElementById('res-score').innerText = `Você acertou ${corrects} de ${gameBank.length} questões!`;
     }
+
+    // Inicializa o monitoramento ao carregar
+    window.onload = monitorarAcesso;
 </script>
 </body>
 </html>

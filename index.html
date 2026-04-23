@@ -2,15 +2,19 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>GeoQuest Esthela - Completo com Explicação</title>
+<title>GeoQuest Esthela - Gameficado</title>
 
 <style>
-body {font-family:Arial;background:#111;color:#000;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}
-.card{background:#fefce8;padding:20px;border-radius:12px;width:90%;max-width:600px;}
-button{width:100%;padding:10px;margin:5px 0;cursor:pointer;}
+body{font-family:Arial;background:#0f172a;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}
+.card{background:#fefce8;color:#000;padding:20px;border-radius:15px;width:95%;max-width:600px;}
+button{width:100%;padding:12px;margin:5px 0;cursor:pointer;border:none;border-radius:8px;font-weight:bold;}
+.opt:hover{background:#e0f2fe;}
 .correct{background:#86efac;}
 .wrong{background:#fecaca;}
-#exp{margin-top:15px;font-weight:bold;}
+.top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:10px;}
+.bar{height:6px;background:#ddd;border-radius:5px;overflow:hidden;margin-bottom:10px;}
+.fill{height:100%;background:#1e40af;width:0%;}
+#exp{margin-top:10px;font-size:13px;}
 </style>
 </head>
 
@@ -18,78 +22,83 @@ button{width:100%;padding:10px;margin:5px 0;cursor:pointer;}
 <div class="card">
 
 <div id="start">
-<h2>GeoQuest</h2>
-<button onclick="start(20)">20 questões</button>
-<button onclick="start(30)">30 questões</button>
-<button onclick="start(50)">50 questões</button>
+<h2>🌎 GeoQuest</h2>
+<button onclick="start(20)">20 QUESTÕES</button>
+<button onclick="start(30)">30 QUESTÕES</button>
+<button onclick="start(50)">50 QUESTÕES</button>
 </div>
 
 <div id="game" style="display:none;">
-<p id="progress"></p>
+<div class="top">
+<span id="score">Pontos: 0</span>
+<span id="lives">❤️❤️❤️</span>
+<span id="combo">Combo: 0</span>
+</div>
+
+<div class="bar"><div id="bar" class="fill"></div></div>
+
 <h3 id="q"></h3>
 <div id="opts"></div>
 <p id="exp"></p>
 </div>
 
 <div id="result" style="display:none;">
-<h2>Resultado</h2>
-<p id="score"></p>
-<button onclick="location.reload()">Reiniciar</button>
+<h2 id="rank"></h2>
+<p id="final"></p>
+<button onclick="location.reload()">Jogar novamente</button>
 </div>
 
 </div>
 
 <script>
 
-// ===== BASE COM EXPLICAÇÃO =====
-const base = [
-["O que caracteriza comunidades tradicionais?","Ligação cultural ao território",
-["Uso industrial","Vida urbana"],
-"Essas comunidades mantêm uma forte relação histórica e cultural com o território onde vivem."],
+// ===== SOM =====
+const ctx = new (window.AudioContext||window.webkitAudioContext)();
+function beep(freq){
+let o=ctx.createOscillator();
+let g=ctx.createGain();
+o.frequency.value=freq;
+o.connect(g); g.connect(ctx.destination);
+o.start();
+g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.2);
+}
 
-["Para que servem as palafitas?","Evitar enchentes",
-["Decoração","Turismo"],
-"As palafitas são construídas sobre estacas para proteger as casas das cheias dos rios."],
-
-["O que é tradição oral?","Transmissão pela fala",
-["Internet","Livros"],
-"A tradição oral preserva histórias, costumes e conhecimentos de geração em geração."],
-
-["Quem são os quilombolas?","Descendentes de africanos escravizados",
-["Europeus","Asiáticos"],
-"Os quilombolas são formados por descendentes de africanos que resistiram à escravidão."],
-
-["Onde vivem os ribeirinhos?","Próximos aos rios",
-["Deserto","Montanha"],
-"Eles vivem às margens dos rios e dependem deles para transporte e alimentação."]
+// ===== BASE =====
+const base=[
+["O que são palafitas?","Casas sobre estacas",["Casas subterrâneas","Casas de concreto"],
+"São construídas sobre estacas para evitar enchentes."],
+["O que é tradição oral?","Transmissão pela fala",["Uso de livros","Internet"],
+"Conhecimentos são passados de geração em geração pela fala."],
+["Quem são quilombolas?","Descendentes de africanos escravizados",["Europeus","Asiáticos"],
+"Representam resistência histórica à escravidão."],
+["Onde vivem ribeirinhos?","Às margens dos rios",["Montanhas","Desertos"],
+"Eles dependem diretamente dos rios."],
+["Oca indígena é feita de?","Materiais naturais",["Metal","Concreto"],
+"Utiliza elementos da natureza como madeira e palha."]
 ];
 
-// ===== GERAR 100 VARIAÇÕES =====
-let banco100 = [];
+// ===== GERAR 100 =====
+let banco=[];
 for(let i=0;i<100;i++){
-    let b = base[i % base.length];
-    banco100.push({
-        q: b[0] + " ("+(i+1)+")",
-        correta: b[1],
-        erradas: b[2],
-        exp: b[3]
-    });
+let b=base[i%base.length];
+banco.push({
+q:b[0]+" ("+(i+1)+")",
+c:b[1],
+e:b[2],
+exp:b[3]
+});
 }
 
 // ===== EMBARALHAR =====
 function montar(){
-return banco100.map(item=>{
-    let op=[item.correta,...item.erradas].sort(()=>Math.random()-0.5);
-    return {
-        q:item.q,
-        o:op,
-        a:op.indexOf(item.correta),
-        exp:item.exp
-    };
+return banco.map(x=>{
+let op=[x.c,...x.e].sort(()=>Math.random()-0.5);
+return {q:x.q,o:op,a:op.indexOf(x.c),exp:x.exp};
 });
 }
 
-let quiz=[],cur=0,score=0,busy=false;
+// ===== GAME =====
+let quiz=[],cur=0,score=0,combo=0,lives=3,startTime=0;
 
 function start(n){
 document.getElementById("start").style.display="none";
@@ -99,48 +108,69 @@ render();
 }
 
 function render(){
-busy=false;
 document.getElementById("exp").innerText="";
+startTime=Date.now();
 
 let q=quiz[cur];
-document.getElementById("progress").innerText=`${cur+1}/${quiz.length}`;
 document.getElementById("q").innerText=q.q;
+document.getElementById("bar").style.width=((cur/quiz.length)*100)+"%";
 
 let box=document.getElementById("opts");
 box.innerHTML="";
 
 q.o.forEach((opt,i)=>{
 let b=document.createElement("button");
+b.className="opt";
 b.innerText=opt;
 
 b.onclick=()=>{
-if(busy) return;
-busy=true;
+let tempo=(Date.now()-startTime)/1000;
 
 if(i===q.a){
 b.classList.add("correct");
-score++;
+beep(600);
+combo++;
+score+=Math.max(10,50-tempo*5)+(combo*5);
 }else{
 b.classList.add("wrong");
+beep(200);
+combo=0;
+lives--;
 }
 
-document.getElementById("exp").innerText="Explicação: "+q.exp;
+document.getElementById("exp").innerText=q.exp;
+updateHUD();
 
 setTimeout(()=>{
+if(lives<=0){end();return;}
 cur++;
 if(cur<quiz.length) render();
 else end();
-},2000);
+},1200);
 };
 
 box.appendChild(b);
 });
 }
 
+function updateHUD(){
+document.getElementById("score").innerText="Pontos: "+Math.floor(score);
+document.getElementById("combo").innerText="Combo: "+combo;
+document.getElementById("lives").innerText="❤️".repeat(lives);
+}
+
 function end(){
 document.getElementById("game").style.display="none";
 document.getElementById("result").style.display="block";
-document.getElementById("score").innerText=`Acertos: ${score}/${quiz.length}`;
+
+let rank="";
+if(score>2000) rank="🏆 Mestre das Comunidades";
+else if(score>1200) rank="🥇 Explorador Avançado";
+else if(score>600) rank="🥈 Explorador";
+else rank="🥉 Iniciante";
+
+document.getElementById("rank").innerText=rank;
+document.getElementById("final").innerText="Pontuação: "+Math.floor(score);
 }
 
 </script>

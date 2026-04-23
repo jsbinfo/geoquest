@@ -2,94 +2,154 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>GeoQuest Esthela - Gameficado</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoQuest Esthela</title>
 
 <style>
-body{font-family:Arial;background:#0f172a;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}
-.card{background:#fefce8;color:#000;padding:20px;border-radius:15px;width:95%;max-width:600px;}
-button{width:100%;padding:12px;margin:5px 0;cursor:pointer;border:none;border-radius:8px;font-weight:bold;}
-.opt:hover{background:#e0f2fe;}
-.correct{background:#86efac;}
-.wrong{background:#fecaca;}
-.top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:10px;}
-.bar{height:6px;background:#ddd;border-radius:5px;overflow:hidden;margin-bottom:10px;}
-.fill{height:100%;background:#1e40af;width:0%;}
-#exp{margin-top:10px;font-size:13px;}
+:root { --blue:#1e40af; --sand:#fefce8; --text:#1e293b; }
+
+body {
+font-family:'Segoe UI',sans-serif;
+background:#000;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+margin:0;
+color:var(--text);
+overflow:hidden;
+}
+
+.globe-bg{
+position:fixed;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+width:850px;height:850px;
+opacity:.4;
+z-index:-1;
+background-image:url('https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png');
+background-size:contain;
+background-repeat:no-repeat;
+animation:spin 120s linear infinite;
+}
+@keyframes spin {
+from{transform:translate(-50%,-50%) rotate(0);}
+to{transform:translate(-50%,-50%) rotate(360deg);}
+}
+
+.atlas-card{
+background:var(--sand);
+border-radius:20px;
+padding:30px;
+width:90%;
+max-width:600px;
+box-shadow:0 0 60px rgba(0,0,0,0.9);
+border:6px solid #d4d4d8;
+background-image:url('https://www.transparenttextures.com/patterns/parchment.png');
+}
+
+.header{text-align:center;margin-bottom:15px;border-bottom:2px solid var(--blue);}
+h1{font-size:20px;color:var(--blue);}
+
+.hud{
+display:flex;
+justify-content:space-between;
+font-size:12px;
+margin-bottom:10px;
+font-weight:bold;
+}
+
+.bar{height:6px;background:#ddd;border-radius:10px;overflow:hidden;margin-bottom:15px;}
+.fill{height:100%;background:var(--blue);width:0%;}
+
+.btn-geo{
+background:var(--blue);
+color:#fff;
+border:none;
+padding:14px;
+border-radius:10px;
+width:100%;
+margin-bottom:10px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.opt-geo{
+background:#fff;
+border:2px solid #cbd5e1;
+border-radius:10px;
+padding:12px;
+margin-bottom:8px;
+cursor:pointer;
+font-weight:600;
+transition:.2s;
+}
+.opt-geo:hover{background:#e0f2fe;}
+
+.anim-acerto{background:#bcfab0;border-color:#15803d;}
+.anim-erro{background:#fecaca;border-color:#991b1b;}
+
+#exp{margin-top:10px;font-size:13px;font-weight:bold;}
+
+#start,#game,#result{display:none;}
 </style>
 </head>
 
 <body>
-<div class="card">
+
+<div class="globe-bg"></div>
+
+<div class="atlas-card">
 
 <div id="start">
-<h2>🌎 GeoQuest</h2>
-<button onclick="start(20)">20 QUESTÕES</button>
-<button onclick="start(30)">30 QUESTÕES</button>
-<button onclick="start(50)">50 QUESTÕES</button>
+<div class="header"><h1>GeoQuest</h1></div>
+<button class="btn-geo" onclick="startGame(20)">20 QUESTÕES</button>
+<button class="btn-geo" onclick="startGame(30)">30 QUESTÕES</button>
+<button class="btn-geo" onclick="startGame(50)">50 QUESTÕES</button>
 </div>
 
-<div id="game" style="display:none;">
-<div class="top">
-<span id="score">Pontos: 0</span>
+<div id="game">
+<div class="hud">
+<span id="score">0 pts</span>
+<span id="combo">Combo 0</span>
 <span id="lives">❤️❤️❤️</span>
-<span id="combo">Combo: 0</span>
 </div>
 
 <div class="bar"><div id="bar" class="fill"></div></div>
 
-<h3 id="q"></h3>
+<div id="progress"></div>
+<div id="q-txt"></div>
 <div id="opts"></div>
-<p id="exp"></p>
+<div id="exp"></div>
 </div>
 
-<div id="result" style="display:none;">
-<h2 id="rank"></h2>
-<p id="final"></p>
-<button onclick="location.reload()">Jogar novamente</button>
+<div id="result">
+<h1 id="res-rank"></h1>
+<p id="res-score"></p>
+<button class="btn-geo" onclick="location.reload()">REINICIAR</button>
 </div>
 
 </div>
 
 <script>
 
-// ===== SOM =====
-const ctx = new (window.AudioContext||window.webkitAudioContext)();
-function beep(freq){
-let o=ctx.createOscillator();
-let g=ctx.createGain();
-o.frequency.value=freq;
-o.connect(g); g.connect(ctx.destination);
-o.start();
-g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.2);
-}
-
 // ===== BASE =====
 const base=[
-["O que são palafitas?","Casas sobre estacas",["Casas subterrâneas","Casas de concreto"],
-"São construídas sobre estacas para evitar enchentes."],
-["O que é tradição oral?","Transmissão pela fala",["Uso de livros","Internet"],
-"Conhecimentos são passados de geração em geração pela fala."],
-["Quem são quilombolas?","Descendentes de africanos escravizados",["Europeus","Asiáticos"],
-"Representam resistência histórica à escravidão."],
-["Onde vivem ribeirinhos?","Às margens dos rios",["Montanhas","Desertos"],
-"Eles dependem diretamente dos rios."],
-["Oca indígena é feita de?","Materiais naturais",["Metal","Concreto"],
-"Utiliza elementos da natureza como madeira e palha."]
+{q:"Qual a função das palafitas?",c:"Evitar enchentes",e:["Decoração","Turismo"],exp:"Protegem as casas contra cheias dos rios."},
+{q:"O que é tradição oral?",c:"Transmitir pela fala",e:["Internet","Livros"],exp:"Conhecimento passado entre gerações pela fala."},
+{q:"Quem são quilombolas?",c:"Descendentes de africanos escravizados",e:["Europeus","Asiáticos"],exp:"Representam resistência histórica."},
+{q:"Onde vivem ribeirinhos?",c:"Próximos aos rios",e:["Deserto","Montanha"],exp:"Dependem dos rios para viver."},
+{q:"Oca indígena é feita de?",c:"Materiais naturais",e:["Metal","Concreto"],exp:"Utiliza recursos naturais disponíveis."}
 ];
 
-// ===== GERAR 100 =====
+// gerar 100
 let banco=[];
 for(let i=0;i<100;i++){
-let b=base[i%base.length];
-banco.push({
-q:b[0]+" ("+(i+1)+")",
-c:b[1],
-e:b[2],
-exp:b[3]
-});
+let b=base[Math.floor(Math.random()*base.length)];
+banco.push({...b});
 }
 
-// ===== EMBARALHAR =====
+// shuffle
 function montar(){
 return banco.map(x=>{
 let op=[x.c,...x.e].sort(()=>Math.random()-0.5);
@@ -97,10 +157,9 @@ return {q:x.q,o:op,a:op.indexOf(x.c),exp:x.exp};
 });
 }
 
-// ===== GAME =====
-let quiz=[],cur=0,score=0,combo=0,lives=3,startTime=0;
+let quiz=[],cur=0,score=0,combo=0,lives=3,startTime=0,busy=false;
 
-function start(n){
+function startGame(n){
 document.getElementById("start").style.display="none";
 document.getElementById("game").style.display="block";
 quiz=montar().sort(()=>Math.random()-0.5).slice(0,n);
@@ -108,11 +167,13 @@ render();
 }
 
 function render(){
-document.getElementById("exp").innerText="";
+busy=false;
 startTime=Date.now();
+document.getElementById("exp").innerText="";
 
 let q=quiz[cur];
-document.getElementById("q").innerText=q.q;
+document.getElementById("progress").innerText=`${cur+1}/${quiz.length}`;
+document.getElementById("q-txt").innerText=q.q;
 document.getElementById("bar").style.width=((cur/quiz.length)*100)+"%";
 
 let box=document.getElementById("opts");
@@ -120,25 +181,26 @@ box.innerHTML="";
 
 q.o.forEach((opt,i)=>{
 let b=document.createElement("button");
-b.className="opt";
+b.className="opt-geo";
 b.innerText=opt;
 
 b.onclick=()=>{
+if(busy) return;
+busy=true;
+
 let tempo=(Date.now()-startTime)/1000;
 
 if(i===q.a){
-b.classList.add("correct");
-beep(600);
+b.classList.add("anim-acerto");
+score+=Math.max(10,40-tempo*5)+(combo*5);
 combo++;
-score+=Math.max(10,50-tempo*5)+(combo*5);
 }else{
-b.classList.add("wrong");
-beep(200);
+b.classList.add("anim-erro");
 combo=0;
 lives--;
 }
 
-document.getElementById("exp").innerText=q.exp;
+document.getElementById("exp").innerText="🧠 "+q.exp;
 updateHUD();
 
 setTimeout(()=>{
@@ -154,8 +216,8 @@ box.appendChild(b);
 }
 
 function updateHUD(){
-document.getElementById("score").innerText="Pontos: "+Math.floor(score);
-document.getElementById("combo").innerText="Combo: "+combo;
+document.getElementById("score").innerText=Math.floor(score)+" pts";
+document.getElementById("combo").innerText="Combo "+combo;
 document.getElementById("lives").innerText="❤️".repeat(lives);
 }
 
@@ -163,15 +225,16 @@ function end(){
 document.getElementById("game").style.display="none";
 document.getElementById("result").style.display="block";
 
-let rank="";
-if(score>2000) rank="🏆 Mestre das Comunidades";
-else if(score>1200) rank="🥇 Explorador Avançado";
-else if(score>600) rank="🥈 Explorador";
-else rank="🥉 Iniciante";
+let rank="Explorador";
+if(score>1500) rank="🏆 Mestre";
+else if(score>800) rank="🥇 Avançado";
 
-document.getElementById("rank").innerText=rank;
-document.getElementById("final").innerText="Pontuação: "+Math.floor(score);
+document.getElementById("res-rank").innerText=rank;
+document.getElementById("res-score").innerText="Pontuação: "+Math.floor(score);
 }
+
+// iniciar tela
+document.getElementById("start").style.display="block";
 
 </script>
 
